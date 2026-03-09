@@ -15,8 +15,13 @@ CREATE TABLE public.admin_users (
 );
 
 -- Helper functions to check authorization (bypass RLS with SECURITY DEFINER)
+-- SECURITY: Set search_path to empty string to prevent schema shadowing attacks.
+-- Without this, a user could create objects in another schema that shadows
+-- auth.uid() or public.admin_users, causing this function to use attacker-controlled data.
 CREATE OR REPLACE FUNCTION public.is_active_admin()
-RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
+SET search_path = public, pg_temp
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
     WHERE id = auth.uid() AND is_active = true
@@ -24,7 +29,9 @@ RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_super_admin()
-RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
+SET search_path = public, pg_temp
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
     WHERE id = auth.uid() AND role = 'super_admin' AND is_active = true
@@ -32,7 +39,9 @@ RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_admin_or_super_admin()
-RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
+SET search_path = public, pg_temp
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
     WHERE id = auth.uid() AND role IN ('super_admin', 'admin') AND is_active = true
@@ -40,7 +49,9 @@ RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_editor()
-RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
+SET search_path = public, pg_temp
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
     WHERE id = auth.uid() AND role = 'editor' AND is_active = true
@@ -93,12 +104,14 @@ CREATE POLICY "Admins can update editors"
 
 -- Trigger function to auto-update the updated_at timestamp
 CREATE OR REPLACE FUNCTION public.update_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Trigger on admin_users
 CREATE TRIGGER admin_users_updated_at

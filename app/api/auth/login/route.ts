@@ -13,6 +13,12 @@ import { checkRateLimit } from '@/lib/security/rate-limit'
 import { getClientIp } from '@/lib/security/get-client-ip'
 
 export async function POST(request: Request) {
+  // Timing oracle mitigation: measure request time to enforce constant-time response
+  // Even though both auth failures return the same message, response time could leak
+  // whether the email exists in Supabase Auth (fast) vs not (slow with admin check)
+  const MIN_RESPONSE_MS = 400
+  const requestStart = Date.now()
+
   try {
     const body = await request.json()
 
@@ -22,6 +28,11 @@ export async function POST(request: Request) {
 
     const rateLimitOk = await checkRateLimit(ip, 'login', 5, 300)
     if (!rateLimitOk) {
+      // Enforce minimum response time
+      const elapsed = Date.now() - requestStart
+      if (elapsed < MIN_RESPONSE_MS) {
+        await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed))
+      }
       return NextResponse.json(
         { success: false, error: 'Too many login attempts. Please try again in a few minutes.' },
         { status: 429 }
@@ -32,6 +43,11 @@ export async function POST(request: Request) {
     const parsed = loginSchema.safeParse(body)
     if (!parsed.success) {
       const firstError = parsed.error.issues[0]?.message || 'Invalid input'
+      // Enforce minimum response time
+      const elapsed = Date.now() - requestStart
+      if (elapsed < MIN_RESPONSE_MS) {
+        await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed))
+      }
       return NextResponse.json(
         { success: false, error: firstError },
         { status: 400 }
@@ -47,8 +63,13 @@ export async function POST(request: Request) {
 
     if (authError || !data.user) {
       console.warn('[Auth] Login failed:', authError?.message)
+      // Enforce minimum response time to prevent timing oracle enumeration
+      const elapsed = Date.now() - requestStart
+      if (elapsed < MIN_RESPONSE_MS) {
+        await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed))
+      }
       return NextResponse.json(
-        { success: false, error: 'Invalid email or password.' },
+        { success: false, error: 'Invalid credentials. Please check your email and password.' },
         { status: 401 }
       )
     }
@@ -63,16 +84,33 @@ export async function POST(request: Request) {
 
     if (adminError || !adminUser || !adminUser.is_active) {
       await supabase.auth.signOut()
+      // Enforce minimum response time to prevent timing oracle enumeration
+      const elapsed = Date.now() - requestStart
+      if (elapsed < MIN_RESPONSE_MS) {
+        await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed))
+      }
+      // Return same generic error message as auth failure to prevent user enumeration
+      // (attacker cannot distinguish between "email not found" and "not an admin")
       return NextResponse.json(
-        { success: false, error: 'Access denied. This account is not authorized for admin access.' },
-        { status: 403 }
+        { success: false, error: 'Invalid credentials. Please check your email and password.' },
+        { status: 401 }
       )
     }
 
     // 5. Success — cookies are automatically set by Supabase client in Route Handler
+    // Enforce minimum response time to prevent timing oracle enumeration
+    const elapsed = Date.now() - requestStart
+    if (elapsed < MIN_RESPONSE_MS) {
+      await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed))
+    }
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
     console.error('[Auth] Unexpected error:', error)
+    // Even on error, enforce minimum response time
+    const elapsed = Date.now() - requestStart
+    if (elapsed < MIN_RESPONSE_MS) {
+      await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed))
+    }
     return NextResponse.json(
       { success: false, error: 'An unexpected error occurred. Please try again.' },
       { status: 500 }

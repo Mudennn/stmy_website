@@ -1,14 +1,28 @@
 /**
- * Server-side rate limiting utility.
- * Uses the Supabase database function to track and limit attempts
- * by identifier (IP address or user ID) and action type.
+ * Server-side rate limiting utility with dual-layer protection.
+ *
+ * Layer 1 (In-Process): In-memory tracking per IP/action - never fails open
+ * Layer 2 (Database): Supabase RPC for persistent tracking across instances
+ *
+ * If either layer says the limit is exceeded, the action is blocked.
+ * The in-memory layer acts as a backstop if the database is unavailable,
+ * ensuring rate limiting cannot be bypassed by saturating Supabase.
  */
 
 import { createClient } from '@/lib/supabase/server'
 
 /**
+ * In-memory rate limiter state.
+ * Maps "identifier:action" -> {attempts: number, windowEnd: timestamp}
+ */
+const inMemoryLimiter = new Map<string, { attempts: number; windowEnd: number }>()
+
+/**
  * Checks if an action is allowed based on rate limiting rules.
+ * Uses dual-layer protection: in-memory (fail-closed) + database (persistent).
+ *
  * Returns true if the action is allowed, false if the rate limit is exceeded.
+ * This function fails CLOSED - if either layer says block, we block.
  *
  * @param identifier - IP address or user ID to track
  * @param action - Action type (e.g., 'login', 'api_call')
@@ -22,10 +36,42 @@ export async function checkRateLimit(
   maxAttempts: number = 10,
   windowSeconds: number = 60
 ): Promise<boolean> {
+  const now = Date.now()
+  const key = `${identifier}:${action}`
+
+  // STEP 1: Check and update in-memory rate limiter
+  // This is the fail-closed backstop that works even if database is unavailable
+  const inMemoryEntry = inMemoryLimiter.get(key)
+  let inMemoryAllowed = true
+
+  if (inMemoryEntry && now < inMemoryEntry.windowEnd) {
+    // Window is still active - check if limit exceeded
+    if (inMemoryEntry.attempts >= maxAttempts) {
+      inMemoryAllowed = false
+      console.warn(
+        `[RateLimit] In-memory limit exceeded for ${key}: ${inMemoryEntry.attempts}/${maxAttempts} attempts`
+      )
+    }
+    // Increment for next check
+    inMemoryEntry.attempts++
+  } else {
+    // Window expired or new entry - create/reset window
+    inMemoryLimiter.set(key, {
+      attempts: 1,
+      windowEnd: now + windowSeconds * 1000,
+    })
+  }
+
+  // If in-memory limit exceeded, block immediately (fail-closed)
+  if (!inMemoryAllowed) {
+    return false
+  }
+
+  // STEP 2: Check database rate limiter (persistent tracking)
+  let dbAllowed = true
   try {
     const supabase = await createClient()
 
-    // Call the Supabase RPC function
     const { data, error } = await supabase.rpc('check_rate_limit', {
       p_identifier: identifier,
       p_action: action,
@@ -34,16 +80,24 @@ export async function checkRateLimit(
     })
 
     if (error) {
-      console.error('[RateLimit] Check error:', error.message)
-      // Fail open - if rate limit check itself fails, allow the action
-      // The auth system has its own protections (password check, admin_users check)
-      return true
+      console.error('[RateLimit] Database check error:', error.message)
+      // Database failed - in-memory limiter is the protection, already checked above
+      dbAllowed = true // Don't fail-open, but in-memory already controls this
+    } else {
+      dbAllowed = data as boolean
+      if (!dbAllowed) {
+        console.warn(
+          `[RateLimit] Database limit exceeded for ${key} (${action})`
+        )
+      }
     }
-
-    return data as boolean
   } catch (err) {
-    console.error('[RateLimit] Check failed:', err)
-    // Fail open - don't block login if rate limiting is broken
-    return true
+    console.error('[RateLimit] Database check failed:', err)
+    // Database unreachable - in-memory limiter is the protection
+    dbAllowed = true // Don't fail-open, in-memory already controls this
   }
+
+  // DECISION: Block only if database explicitly says no
+  // (If database failed, we already blocked via in-memory if needed)
+  return dbAllowed
 }

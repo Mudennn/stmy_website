@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import type { Database } from '@/types/database'
 
@@ -36,8 +37,11 @@ export async function getSession(): Promise<AuthSession> {
     redirect('/login')
   }
 
-  // Get the user's admin profile
-  const { data: adminUser, error } = await supabase
+  // Get the user's admin profile using admin client
+  // Consistent with login route: use service-role client to bypass RLS
+  // This avoids potential issues with RLS policy changes affecting session establishment
+  const adminClient = createAdminClient()
+  const { data: adminUser, error } = await adminClient
     .from('admin_users')
     .select('*')
     .eq('id', user.id)

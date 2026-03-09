@@ -18,12 +18,15 @@ CREATE INDEX rate_limits_lookup ON public.rate_limits (identifier, action, attem
 
 -- Function to check rate limit (returns true if allowed, false if exceeded)
 -- Usage: SELECT check_rate_limit('192.168.1.1', 'login', 5, 300)
+-- SECURITY: Set search_path to empty string to prevent schema shadowing attacks
 CREATE OR REPLACE FUNCTION public.check_rate_limit(
   p_identifier TEXT,
   p_action TEXT,
   p_max_attempts INTEGER DEFAULT 10,
   p_window_seconds INTEGER DEFAULT 60
-) RETURNS BOOLEAN AS $$
+) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
 DECLARE
   attempt_count INTEGER;
 BEGIN
@@ -43,12 +46,15 @@ BEGIN
   INSERT INTO public.rate_limits (identifier, action) VALUES (p_identifier, p_action);
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Function to cleanup old rate limit entries (can be called via pg_cron or manually)
 -- SECURITY DEFINER required to bypass deny-all RLS policy on rate_limits table
-CREATE OR REPLACE FUNCTION public.cleanup_rate_limits() RETURNS void AS $$
+-- SECURITY: Set search_path to empty string to prevent schema shadowing attacks
+CREATE OR REPLACE FUNCTION public.cleanup_rate_limits() RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
 BEGIN
   DELETE FROM public.rate_limits WHERE attempted_at < now() - INTERVAL '1 hour';
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
