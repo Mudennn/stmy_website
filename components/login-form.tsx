@@ -26,12 +26,11 @@ import { toast } from 'sonner'
  * Calls /api/auth/login Route Handler which properly handles cookies.
  */
 export function LoginForm({
-  error: initialError,
   className,
   ...props
-}: React.ComponentProps<'div'> & { error?: string }) {
+}: React.ComponentProps<'div'>) {
   const router = useRouter()
-  const [error, setError] = useState(initialError || '')
+  const [error, setError] = useState('')
   const [isPending, startTransition] = useTransition()
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
@@ -79,9 +78,9 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
-              {(error || initialError) && (
+              {error && (
                 <Field>
-                  <FieldError>{error || initialError}</FieldError>
+                  <FieldError>{error}</FieldError>
                 </Field>
               )}
 

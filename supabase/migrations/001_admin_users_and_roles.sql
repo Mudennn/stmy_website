@@ -78,6 +78,19 @@ CREATE POLICY "Admins can update editors"
     role = 'editor' OR public.is_super_admin()
   );
 
+-- SECURITY NOTE: The above policy restricts WHICH ROWS admins can update (only editors),
+-- but does not restrict WHICH COLUMNS they can modify. If new columns are added to
+-- admin_users, this policy should be re-evaluated. Currently safe because:
+-- - email: unique, shouldn't change after creation
+-- - role: restricted by WITH CHECK (role = 'editor' for non-super-admins)
+-- - id, created_at: immutable primary/timestamp keys
+-- - updated_at: auto-managed by trigger
+-- - is_active: intentional — admins should be able to activate/deactivate editors
+-- - full_name: intentional — admins should be able to update display names
+--
+-- If sensitive columns (e.g., permissions JSONB) are added, move these checks to the
+-- application layer or use Supabase custom claims / custom authorization functions.
+
 -- Trigger function to auto-update the updated_at timestamp
 CREATE OR REPLACE FUNCTION public.update_updated_at()
 RETURNS TRIGGER AS $$

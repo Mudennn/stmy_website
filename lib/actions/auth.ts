@@ -107,9 +107,10 @@ export async function inviteUserAction(
       }
     }
 
-    // 4. Create admin_users record
-    const supabase = await createClient()
-    const { error: adminUserError } = await supabase
+    // 4. Create admin_users record using admin client
+    // Consistent with login route: security boundary already enforced above (role check, Zod schema)
+    // Using service-role client is safer for privileged write operations and avoids RLS evaluation
+    const { error: adminUserError } = await adminClient
       .from('admin_users')
       .insert({
         id: authData.user.id,

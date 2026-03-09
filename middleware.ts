@@ -1,10 +1,14 @@
 /**
  * Next.js middleware for route protection and session management.
  * Runs on every request to:
- * 1. Refresh Supabase auth session via cookies
+ * 1. Refresh Supabase auth session via cookies (applies to pages AND API routes)
  * 2. Protect /dashboard/* routes (redirect to /login if not authenticated)
  * 3. Redirect authenticated users away from /login (to /dashboard)
  * 4. Redirect /signup to /login (no public registration, invite-only)
+ *
+ * Note: API routes are included in the matcher so that session tokens are
+ * refreshed before protected endpoints are called. This prevents issues where
+ * an expired token would return null even with a valid refresh token.
  */
 
 import { NextResponse, type NextRequest } from 'next/server'
@@ -70,5 +74,5 @@ export async function middleware(request: NextRequest) {
 
 // Configure which routes trigger the middleware
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/signup'],
+  matcher: ['/dashboard/:path*', '/login', '/signup', '/api/:path*'],
 }
