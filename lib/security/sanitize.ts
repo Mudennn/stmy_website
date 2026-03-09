@@ -36,8 +36,6 @@ export function sanitizeHtml(input: string): string {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
     ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
     KEEP_CONTENT: true,
-    // Ensure links don't navigate via javascript: or data:
-    SAFE_FOR_TEMPLATES: true,
   })
 }
 
