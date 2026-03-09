@@ -52,9 +52,14 @@ export function NavUser({ user }: NavUserProps) {
     try {
       await logoutAction()
     } catch (err) {
-      // logoutAction() throws NEXT_REDIRECT which Next.js handles internally.
+      // logoutAction() calls redirect('/login') which throws an error with a
+      // digest starting with 'NEXT_REDIRECT'. Identify it via digest, not message
+      // (err.message is the redirect URL, not the string 'NEXT_REDIRECT').
       // Don't show error toast for redirects — they're expected and successful.
-      if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+      if (
+        err instanceof Error &&
+        (err as Error & { digest?: string }).digest?.startsWith('NEXT_REDIRECT')
+      ) {
         return
       }
       // Genuine error (e.g., signOut or auth client failure)

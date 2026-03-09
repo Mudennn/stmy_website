@@ -122,6 +122,21 @@ WHERE is_active = true
   AND (ends_at IS NULL OR ends_at >= now());
 
 -- ============================================================================
+-- GRANTS
+-- ============================================================================
+-- Explicitly grant SELECT on all public views to anon and authenticated roles.
+-- Supabase's ALTER DEFAULT PRIVILEGES only covers objects created by the
+-- configured role at bootstrap time. Without explicit grants, anon may receive
+-- permission denied on these views even though the base table public policies
+-- were intentionally removed in favour of view-based access.
+
+GRANT SELECT ON public.events_public TO anon, authenticated;
+GRANT SELECT ON public.members_public TO anon, authenticated;
+GRANT SELECT ON public.partners_public TO anon, authenticated;
+GRANT SELECT ON public.cms_content_public TO anon, authenticated;
+GRANT SELECT ON public.announcements_public TO anon, authenticated;
+
+-- ============================================================================
 -- DOCUMENTATION
 -- ============================================================================
 --
