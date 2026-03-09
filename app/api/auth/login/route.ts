@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       }
       return NextResponse.json(
         { success: false, error: firstError },
-        { status: 400 }
+        { status: 401 }
       )
     }
 

@@ -1,5 +1,14 @@
 import type { NextConfig } from 'next'
 
+// Build-time assertion: ensure Supabase URL is available for CSP configuration
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+if (!supabaseUrl) {
+  console.warn(
+    '[next.config] NEXT_PUBLIC_SUPABASE_URL is not set at build time — ' +
+    'CSP connect-src will not include the Supabase origin, breaking client-side API calls.'
+  )
+}
+
 const nextConfig: NextConfig = {
   /**
    * Security headers configuration
