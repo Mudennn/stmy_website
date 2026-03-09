@@ -85,7 +85,11 @@ export async function POST(request: Request) {
       .single()
 
     if (adminError || !adminUser || !adminUser.is_active) {
-      await supabase.auth.signOut()
+      const { error: signOutError } = await supabase.auth.signOut()
+      if (signOutError) {
+        console.error('[Auth] Failed to sign out non-admin user:', signOutError.message)
+        // Session cookie may remain valid; getSession() on next /dashboard request will re-verify
+      }
       // Record this failed attempt for rate limiting (5 attempts in 300 seconds)
       await recordFailedAttempt(ip, 'login', 300)
       // Enforce minimum response time to prevent timing oracle enumeration

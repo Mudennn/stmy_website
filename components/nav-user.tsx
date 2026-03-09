@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Badge } from '@/components/ui/badge'
 import { EllipsisVerticalIcon, LogOutIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import { logoutAction } from '@/lib/actions/auth'
 
 interface NavUserProps {
@@ -48,7 +49,12 @@ export function NavUser({ user }: NavUserProps) {
     .toUpperCase()
 
   async function handleLogout() {
-    await logoutAction()
+    try {
+      await logoutAction()
+    } catch (err) {
+      console.error('[Auth] Logout failed:', err)
+      toast.error('Sign out failed. Please try again.')
+    }
   }
 
   return (
