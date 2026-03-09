@@ -360,6 +360,13 @@ export type Database = {
         Returns: boolean
       }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      record_failed_attempt: {
+        Args: {
+          p_identifier: string
+          p_action: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       content_section:

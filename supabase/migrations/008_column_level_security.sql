@@ -101,6 +101,10 @@ ALTER VIEW public.partners_public OWNER TO postgres;
 -- ============================================================================
 -- CMS_CONTENT VIEW
 -- ============================================================================
+-- NOTE: metadata column intentionally excluded from public view.
+-- metadata is a free-form JSONB field with no schema constraints, and admins
+-- could inadvertently store internal notes, configurations, or sensitive data
+-- in it. Only explicitly-named columns are safe to expose publicly.
 
 -- Drop existing public policy from base table (anon must go through the view)
 DROP POLICY "Public can read published cms_content" ON public.cms_content;
@@ -113,7 +117,6 @@ SELECT
   subtitle,
   body,
   image_url,
-  metadata,
   sort_order,
   is_published,
   created_at,

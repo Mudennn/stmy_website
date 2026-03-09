@@ -43,30 +43,13 @@ interface RecordFailedAttemptArgs {
 }
 
 /**
- * RPC response structure matching Supabase client response format.
- * Used to type custom RPC functions not in auto-generated types.
- */
-interface RpcResponse<T = unknown> {
-  data: T
-  error: { message: string } | null
-}
-
-/**
  * Typed wrapper for the record_failed_attempt RPC call.
- * The RPC function is custom-defined in migrations and not in auto-generated types.
- * Type casting explained:
- * - supabase.rpc is typed based on auto-generated Supabase types
- * - record_failed_attempt is not in those types (added via migration)
- * - We cast through unknown, then to RpcResponse<void> to provide type safety
- *   for the arguments and expected response, even though TypeScript can't verify the RPC function exists
+ * The RPC function is defined in migration 007 and has a corresponding type
+ * definition in types/database.ts, so we have full type safety.
  */
 async function callRecordFailedAttemptRpc(args: RecordFailedAttemptArgs): Promise<void> {
   const supabase = createAdminClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await ((supabase.rpc as any)(
-    'record_failed_attempt',
-    args
-  ) as unknown as Promise<RpcResponse<void>>)
+  const { error } = await supabase.rpc('record_failed_attempt', args)
 
   if (error) {
     throw error
