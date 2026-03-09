@@ -115,7 +115,13 @@ export async function inviteUserAction(
     // 3. Create auth user via service role client
     const adminClient = createAdminClient()
 
-    // Generate a cryptographically secure temporary password (user will reset on first login)
+    // TEMPORARY: Generate a cryptographically secure temporary password (user will reset on first login)
+    // NOTE: Without SMTP configured, invited users have no way to receive credentials or trigger a reset link.
+    // Once SMTP is configured, switch to inviteUserByEmail() which sends a magic-link email automatically:
+    //   const { data: authData, error: createError } =
+    //     await adminClient.auth.admin.inviteUserByEmail(parsed.data.email, {
+    //       data: { full_name: parsed.data.full_name, role: parsed.data.role },
+    //     })
     const tempPassword = randomBytes(12).toString('base64')
 
     const { data: authData, error: createError } = await adminClient.auth.admin.createUser({
