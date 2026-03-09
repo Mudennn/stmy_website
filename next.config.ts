@@ -30,6 +30,13 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
+          // Strict Transport Security - enforce HTTPS to prevent protocol downgrade attacks
+          // max-age: 1 year (31536000 seconds), includeSubDomains applies HSTS to subdomains
+          // Prevents browsers from ever accessing the site over HTTP after first secure visit
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
           // Content Security Policy - restrictive policy for admin panel
           // Restricts resource sources; allows inline scripts needed for Next.js RSC hydration
           // TODO: Replace 'unsafe-inline' with per-request nonce for stricter XSS protection
