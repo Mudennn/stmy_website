@@ -52,6 +52,12 @@ export function NavUser({ user }: NavUserProps) {
     try {
       await logoutAction()
     } catch (err) {
+      // logoutAction() throws NEXT_REDIRECT which Next.js handles internally.
+      // Don't show error toast for redirects — they're expected and successful.
+      if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+        return
+      }
+      // Genuine error (e.g., signOut or auth client failure)
       console.error('[Auth] Logout failed:', err)
       toast.error('Sign out failed. Please try again.')
     }

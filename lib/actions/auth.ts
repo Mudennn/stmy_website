@@ -146,7 +146,28 @@ export async function inviteUserAction(
 
     if (adminUserError) {
       // Clean up auth user if admin_users creation fails
-      await adminClient.auth.admin.deleteUser(authData.user.id)
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(authData.user.id)
+
+      if (deleteError) {
+        // Cleanup failed — auth user is now orphaned in Supabase Auth with no admin_users row.
+        // This blocks the email from being invited again and could cause confusion if the user
+        // later attempts a password reset. Log with full context for manual remediation.
+        console.error(
+          '[Auth] CRITICAL: Orphaned auth user — admin_users insert failed AND cleanup failed',
+          {
+            userId: authData.user.id,
+            email: parsed.data.email,
+            insertError: adminUserError.message,
+            deleteError: deleteError.message,
+          }
+        )
+        return {
+          success: false,
+          error: 'Failed to create admin user. Please contact a super admin to clean up the orphaned account.',
+        }
+      }
+
+      // Cleanup succeeded
       return {
         success: false,
         error: 'Failed to create admin user profile',
