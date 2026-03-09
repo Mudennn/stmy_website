@@ -31,6 +31,8 @@ SELECT
   updated_at
 FROM public.events;
 
+ALTER TABLE public.events_public ENABLE ROW LEVEL SECURITY;
+
 -- Move public policy from table to view
 DROP POLICY "Public can read published events" ON public.events;
 
@@ -45,13 +47,15 @@ CREATE POLICY "Public can read published events"
 CREATE VIEW public.members_public AS
 SELECT
   id,
-  name,
+  full_name,
   email,
-  role,
+  role_title,
   is_active,
   created_at,
   updated_at
 FROM public.members;
+
+ALTER TABLE public.members_public ENABLE ROW LEVEL SECURITY;
 
 -- Move public policy from table to view
 DROP POLICY "Public can read active members" ON public.members;
@@ -68,13 +72,14 @@ CREATE VIEW public.partners_public AS
 SELECT
   id,
   name,
-  description,
   logo_url,
   website_url,
   is_active,
   created_at,
   updated_at
 FROM public.partners;
+
+ALTER TABLE public.partners_public ENABLE ROW LEVEL SECURITY;
 
 -- Move public policy from table to view
 DROP POLICY "Public can read active partners" ON public.partners;
@@ -90,13 +95,16 @@ CREATE POLICY "Public can read active partners"
 CREATE VIEW public.cms_content_public AS
 SELECT
   id,
+  section,
   title,
-  slug,
-  content,
+  subtitle,
+  body,
   is_published,
   created_at,
   updated_at
 FROM public.cms_content;
+
+ALTER TABLE public.cms_content_public ENABLE ROW LEVEL SECURITY;
 
 -- Move public policy from table to view
 DROP POLICY "Public can read published cms_content" ON public.cms_content;
@@ -112,12 +120,17 @@ CREATE POLICY "Public can read published cms_content"
 CREATE VIEW public.announcements_public AS
 SELECT
   id,
-  title,
-  content,
+  message,
+  link_url,
+  link_text,
+  bg_color,
+  text_color,
   is_active,
   created_at,
   updated_at
 FROM public.announcements;
+
+ALTER TABLE public.announcements_public ENABLE ROW LEVEL SECURITY;
 
 -- Move public policy from table to view
 DROP POLICY "Public can read active announcements" ON public.announcements;
