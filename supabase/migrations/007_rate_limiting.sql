@@ -82,7 +82,8 @@ $$;
 --   1. Call record_failed_attempt() in a loop to lock out any IP (DoS on rate limiting)
 --   2. Call cleanup_rate_limits() to erase their own rate limit records
 --
--- All legitimate calls go through the server-side recordFailedAttempt() wrapper,
--- so client-side access is not needed.
+-- All legitimate calls go through the server-side wrappers (checkRateLimit, recordFailedAttempt),
+-- which use the service-role admin client, so client-side access is not needed.
+REVOKE EXECUTE ON FUNCTION public.check_rate_limit(TEXT, TEXT, INTEGER, INTEGER) FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.record_failed_attempt(TEXT, TEXT) FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.cleanup_rate_limits() FROM anon, authenticated;

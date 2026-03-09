@@ -24,7 +24,7 @@
  * throughput, not as a security backstop for sustained attacks.
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * Type-safe RPC function arguments for record_failed_attempt.
@@ -54,7 +54,7 @@ interface RpcResponse<T = unknown> {
  *   for the arguments and expected response, even though TypeScript can't verify the RPC function exists
  */
 async function callRecordFailedAttemptRpc(args: RecordFailedAttemptArgs): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await ((supabase.rpc as any)(
     'record_failed_attempt',
@@ -203,7 +203,7 @@ export async function checkRateLimit(
   // STEP 2: Check database rate limiter (persistent tracking)
   let dbAllowed = true
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data, error } = await supabase.rpc('check_rate_limit', {
       p_identifier: identifier,
