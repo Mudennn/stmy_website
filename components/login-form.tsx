@@ -19,7 +19,6 @@ import {
   FieldError,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
 
 /**
  * Login form for admin users.
@@ -53,7 +52,6 @@ export function LoginForm({
 
         if (!result.success) {
           setError(result.error)
-          toast.error(result.error)
         } else {
           // Redirect to dashboard
           router.push('/dashboard')
@@ -61,7 +59,6 @@ export function LoginForm({
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Login failed'
         setError(message)
-        toast.error(message)
       }
     })
   }

@@ -20,7 +20,7 @@ CREATE TABLE public.admin_users (
 -- auth.uid() or public.admin_users, causing this function to use attacker-controlled data.
 CREATE OR REPLACE FUNCTION public.is_active_admin()
 RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
@@ -30,7 +30,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
@@ -40,7 +40,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.is_admin_or_super_admin()
 RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
@@ -50,7 +50,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.is_editor()
 RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_users
@@ -105,7 +105,7 @@ CREATE POLICY "Admins can update editors"
 -- Trigger function to auto-update the updated_at timestamp
 CREATE OR REPLACE FUNCTION public.update_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
 BEGIN
   NEW.updated_at = now();
