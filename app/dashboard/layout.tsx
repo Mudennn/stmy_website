@@ -28,7 +28,7 @@ export default async function DashboardLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar user={{ ...user, name: adminUser.full_name, role: adminUser.role }} />
+      <AppSidebar user={{ email: user.email, name: adminUser.full_name, role: adminUser.role }} />
       <SidebarInset>
         <SiteHeader />
         {children}
