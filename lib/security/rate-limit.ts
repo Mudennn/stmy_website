@@ -27,6 +27,46 @@
 import { createClient } from '@/lib/supabase/server'
 
 /**
+ * Type-safe RPC function arguments for record_failed_attempt.
+ * Ensures parameter names match the PostgreSQL function signature.
+ */
+interface RecordFailedAttemptArgs {
+  p_identifier: string
+  p_action: string
+}
+
+/**
+ * RPC response structure matching Supabase client response format.
+ * Used to type custom RPC functions not in auto-generated types.
+ */
+interface RpcResponse<T = unknown> {
+  data: T
+  error: { message: string } | null
+}
+
+/**
+ * Typed wrapper for the record_failed_attempt RPC call.
+ * The RPC function is custom-defined in migrations and not in auto-generated types.
+ * Type casting explained:
+ * - supabase.rpc is typed based on auto-generated Supabase types
+ * - record_failed_attempt is not in those types (added via migration)
+ * - We cast through unknown, then to RpcResponse<void> to provide type safety
+ *   for the arguments and expected response, even though TypeScript can't verify the RPC function exists
+ */
+async function callRecordFailedAttemptRpc(args: RecordFailedAttemptArgs): Promise<void> {
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await ((supabase.rpc as any)(
+    'record_failed_attempt',
+    args
+  ) as unknown as Promise<RpcResponse<void>>)
+
+  if (error) {
+    throw error
+  }
+}
+
+/**
  * In-memory rate limiter state (per-invocation, not shared across instances).
  * Maps "identifier:action" -> {attempts: number, windowEnd: timestamp}
  *
@@ -80,18 +120,38 @@ function pruneExpiredEntries(): void {
  * @returns true if allowed, false if rate limit exceeded
  */
 /**
- * Records a failed login attempt in the rate limiter.
+ * Records a failed login attempt in the rate limiter (both in-memory and database).
  * Only called when authentication actually fails, not on every attempt.
  * This prevents legitimate successful logins from consuming rate limit budget.
  *
  * @param identifier - IP address or user ID that failed
  * @param action - Action type (e.g., 'login')
+ * @param windowSeconds - Time window in seconds (should match checkRateLimit window, default: 60)
  */
-export async function recordFailedAttempt(identifier: string, action: string): Promise<void> {
+export async function recordFailedAttempt(
+  identifier: string,
+  action: string,
+  windowSeconds: number = 60
+): Promise<void> {
+  const now = Date.now()
+  const key = `${identifier}:${action}`
+
+  // Update in-memory limiter - only increment on actual failure
+  const inMemoryEntry = inMemoryLimiter.get(key)
+  if (inMemoryEntry && now < inMemoryEntry.windowEnd) {
+    // Window is still active - increment the attempt counter
+    inMemoryEntry.attempts++
+  } else {
+    // Window expired or new entry - initialize with 1 failure
+    inMemoryLimiter.set(key, {
+      attempts: 1,
+      windowEnd: now + windowSeconds * 1000,
+    })
+  }
+
+  // Record in database for persistent tracking
   try {
-    const supabase = await createClient()
-    // Type assertion needed for new RPC function added in migration 007
-    await (supabase.rpc as any)('record_failed_attempt', {
+    await callRecordFailedAttemptRpc({
       p_identifier: identifier,
       p_action: action,
     })
@@ -117,8 +177,9 @@ export async function checkRateLimit(
     pruneExpiredEntries()
   }
 
-  // STEP 1: Check and update in-memory rate limiter
+  // STEP 1: Check in-memory rate limiter (read-only, no side effects)
   // This is the fail-closed backstop that works even if database is unavailable
+  // Only counts actual failures recorded by recordFailedAttempt(), not every check
   const inMemoryEntry = inMemoryLimiter.get(key)
   let inMemoryAllowed = true
 
@@ -130,15 +191,9 @@ export async function checkRateLimit(
         `[RateLimit] In-memory limit exceeded for ${key}: ${inMemoryEntry.attempts}/${maxAttempts} attempts`
       )
     }
-    // Increment for next check
-    inMemoryEntry.attempts++
-  } else {
-    // Window expired or new entry - create/reset window
-    inMemoryLimiter.set(key, {
-      attempts: 1,
-      windowEnd: now + windowSeconds * 1000,
-    })
   }
+  // Note: We do NOT increment here. Increment only happens in recordFailedAttempt()
+  // This ensures we only count actual failures, not every check call
 
   // If in-memory limit exceeded, block immediately (fail-closed)
   if (!inMemoryAllowed) {

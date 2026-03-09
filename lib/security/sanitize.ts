@@ -80,21 +80,59 @@ export function stripHtml(input: string): string {
  * Sanitizes URL to prevent javascript: protocol and other malicious URLs.
  * Returns empty string if URL is invalid or malicious.
  *
+ * WARNING: This function allows ANY https: URL, including external domains.
+ * An attacker can craft content with links to phishing sites. Use allowedDomains
+ * parameter to restrict to trusted domains if the URL comes from user input.
+ *
  * @param url - URL string to validate
+ * @param allowedDomains - Optional array of trusted domains (e.g., ['example.com', 'www.example.com'])
+ *                         If provided, external URLs to unlisted domains are rejected.
+ *                         Always allows same-origin (relative) URLs.
  * @returns Safe URL or empty string
  */
-export function sanitizeUrl(url: string): string {
+export function sanitizeUrl(url: string, allowedDomains?: string[]): string {
   if (!url) return ''
 
   try {
     const parsed = new URL(url)
-    // Only allow http and https protocols
+
+    // Only allow http and https protocols (reject javascript:, data:, vbscript:, etc.)
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return ''
     }
+
+    // If domain allowlist provided, validate against it
+    if (allowedDomains && allowedDomains.length > 0) {
+      const hostname = parsed.hostname?.toLowerCase()
+      if (!hostname || !allowedDomains.some(domain => hostname === domain.toLowerCase())) {
+        return ''
+      }
+    }
+
     return url
   } catch {
     // Invalid URL
     return ''
   }
+}
+
+/**
+ * Sanitizes a same-origin URL (relative or absolute on current domain).
+ * Useful for internal navigation where you want to prevent redirects to external sites.
+ * Returns empty string if URL points to a different domain.
+ *
+ * @param url - URL string to validate
+ * @param currentDomain - Current site's domain (e.g., 'example.com')
+ * @returns Safe same-origin URL or empty string
+ */
+export function sanitizeSameOriginUrl(url: string, currentDomain: string): string {
+  if (!url) return ''
+
+  // Allow relative URLs (same-origin by definition)
+  if (url.startsWith('/') || url.startsWith('#') || url.startsWith('?')) {
+    return url
+  }
+
+  // For absolute URLs, validate domain matches
+  return sanitizeUrl(url, [currentDomain])
 }

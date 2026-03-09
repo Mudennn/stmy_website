@@ -63,8 +63,8 @@ export async function POST(request: Request) {
 
     if (authError || !data.user) {
       console.warn('[Auth] Login failed:', authError?.message)
-      // Record this failed attempt for rate limiting
-      await recordFailedAttempt(ip, 'login')
+      // Record this failed attempt for rate limiting (5 attempts in 300 seconds)
+      await recordFailedAttempt(ip, 'login', 300)
       // Enforce minimum response time to prevent timing oracle enumeration
       const elapsed = Date.now() - requestStart
       if (elapsed < MIN_RESPONSE_MS) {
@@ -86,8 +86,8 @@ export async function POST(request: Request) {
 
     if (adminError || !adminUser || !adminUser.is_active) {
       await supabase.auth.signOut()
-      // Record this failed attempt for rate limiting
-      await recordFailedAttempt(ip, 'login')
+      // Record this failed attempt for rate limiting (5 attempts in 300 seconds)
+      await recordFailedAttempt(ip, 'login', 300)
       // Enforce minimum response time to prevent timing oracle enumeration
       const elapsed = Date.now() - requestStart
       if (elapsed < MIN_RESPONSE_MS) {
