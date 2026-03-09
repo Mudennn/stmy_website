@@ -22,7 +22,6 @@ import {
   FileTextIcon,
   BellIcon,
   SettingsIcon,
-  LogOutIcon,
 } from 'lucide-react'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {

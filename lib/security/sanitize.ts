@@ -1,11 +1,21 @@
 /**
  * HTML sanitization utilities to prevent XSS attacks.
- * Uses regex-based sanitization for safe HTML cleaning.
+ * Uses DOMPurify (allowlist-based) for robust HTML cleaning.
+ *
+ * SECURITY NOTE: Regex-based blocklists are bypassable via:
+ * - Malformed tags: <scr<script>ipt>payload</scr</script>ipt>
+ * - Attribute obfuscation: <img onerror\t=alert(1)> (tab whitespace)
+ * - Encoding: <IMG SRC="jav&#x0A;ascript:alert(1);">
+ * - CSS expressions and browser quirks
+ *
+ * DOMPurify uses an allowlist approach, which is much more secure.
  */
+
+import DOMPurify from 'isomorphic-dompurify'
 
 /**
  * Sanitizes HTML input to remove dangerous tags and attributes.
- * Strips script tags, event handlers, and javascript: protocol.
+ * Uses DOMPurify allowlist for robust XSS prevention.
  * Safe for storing user-generated content that should support basic HTML.
  *
  * @param input - Raw HTML string to sanitize
@@ -14,23 +24,13 @@
 export function sanitizeHtml(input: string): string {
   if (!input) return ''
 
-  // Remove script tags and their content
-  let cleaned = input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-
-  // Remove event handlers (on* attributes)
-  cleaned = cleaned.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')
-  cleaned = cleaned.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '')
-
-  // Remove javascript: protocol from href and src
-  cleaned = cleaned.replace(/\s*(href|src)\s*=\s*["']?javascript:[^"'>]*/gi, '')
-
-  // Remove style attribute content that might contain expressions
-  cleaned = cleaned.replace(/\s*style\s*=\s*["']([^"']*(?:expression|behavior|javascript)[^"']*)["']/gi, '')
-
-  // Remove iframe, object, embed tags
-  cleaned = cleaned.replace(/<(iframe|object|embed|frame|frameset)[^>]*>/gi, '')
-
-  return cleaned
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
+    ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
+    KEEP_CONTENT: true,
+    // Ensure links don't navigate via javascript: or data:
+    SAFE_FOR_TEMPLATES: true,
+  })
 }
 
 /**

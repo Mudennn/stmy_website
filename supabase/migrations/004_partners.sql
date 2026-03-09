@@ -16,28 +16,23 @@ ALTER TABLE public.partners ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin users can read partners"
   ON public.partners FOR SELECT
-  USING (auth.uid() IN (SELECT id FROM public.admin_users WHERE is_active = true));
+  USING (public.is_active_admin());
 
 CREATE POLICY "Super admin and admin can create partners"
   ON public.partners FOR INSERT
-  WITH CHECK (
-    auth.uid() IN (SELECT id FROM public.admin_users WHERE role IN ('super_admin', 'admin') AND is_active = true)
-  );
+  WITH CHECK (public.is_admin_or_super_admin());
 
 CREATE POLICY "Super admin and admin can update all partners, editor can update only"
   ON public.partners FOR UPDATE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users WHERE is_active = true))
+  USING (public.is_active_admin())
   WITH CHECK (
-    auth.uid() IN (SELECT id FROM public.admin_users WHERE role IN ('super_admin', 'admin') AND is_active = true)
-    OR (
-      auth.uid() IN (SELECT id FROM public.admin_users WHERE role = 'editor' AND is_active = true)
-      AND auth.uid() = created_by
-    )
+    public.is_admin_or_super_admin()
+    OR (public.is_editor() AND auth.uid() = created_by)
   );
 
 CREATE POLICY "Only super admin and admin can delete partners"
   ON public.partners FOR DELETE
-  USING (auth.uid() IN (SELECT id FROM public.admin_users WHERE role IN ('super_admin', 'admin') AND is_active = true));
+  USING (public.is_admin_or_super_admin());
 
 CREATE TRIGGER partners_updated_at
   BEFORE UPDATE ON public.partners

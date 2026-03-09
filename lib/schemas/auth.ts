@@ -23,7 +23,7 @@ export type LoginFormData = z.infer<typeof loginSchema>
 export const inviteSchema = z.object({
   email: z.string().email('Invalid email format'),
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
-  role: z.enum(['admin', 'editor']).catch('admin'),
+  role: z.enum(['admin', 'editor']),
 })
 
 export type InviteFormData = z.infer<typeof inviteSchema>

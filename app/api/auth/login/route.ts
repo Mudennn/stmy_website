@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { loginSchema } from '@/lib/schemas/auth'
 import { checkRateLimit } from '@/lib/security/rate-limit'
+import { getClientIp } from '@/lib/security/get-client-ip'
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
 
     // 1. Rate limit check by IP
     const headersList = await headers()
-    const ip = headersList.get('x-forwarded-for') ?? headersList.get('x-real-ip') ?? 'unknown'
+    const ip = getClientIp(headersList)
 
     const rateLimitOk = await checkRateLimit(ip, 'login', 5, 300)
     if (!rateLimitOk) {

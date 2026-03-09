@@ -14,38 +14,65 @@ CREATE TABLE public.admin_users (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Helper functions to check authorization (bypass RLS with SECURITY DEFINER)
+CREATE OR REPLACE FUNCTION public.is_active_admin()
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admin_users
+    WHERE id = auth.uid() AND is_active = true
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admin_users
+    WHERE id = auth.uid() AND role = 'super_admin' AND is_active = true
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_admin_or_super_admin()
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admin_users
+    WHERE id = auth.uid() AND role IN ('super_admin', 'admin') AND is_active = true
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_editor()
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.admin_users
+    WHERE id = auth.uid() AND role = 'editor' AND is_active = true
+  );
+$$;
+
 -- Enable RLS on admin_users
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 
--- RLS Policy: All authenticated admin_users can read admin_users table
+-- RLS Policy: All active admin_users can read admin_users table
 CREATE POLICY "Admin users can read admin_users"
   ON public.admin_users FOR SELECT
-  USING (
-    auth.uid() IN (SELECT id FROM public.admin_users WHERE is_active = true)
-  );
+  USING (public.is_active_admin());
 
 -- RLS Policy: Super admins can manage all admin_users (insert/update/delete)
 CREATE POLICY "Super admins can manage all admin_users"
   ON public.admin_users FOR ALL
-  USING (
-    auth.uid() IN (SELECT id FROM public.admin_users WHERE role = 'super_admin' AND is_active = true)
-  );
+  USING (public.is_super_admin());
 
 -- RLS Policy: Admins can create/update editors only (not admins)
 CREATE POLICY "Admins can manage editors"
   ON public.admin_users FOR INSERT
   WITH CHECK (
-    auth.uid() IN (SELECT id FROM public.admin_users WHERE role IN ('super_admin', 'admin') AND is_active = true)
+    public.is_admin_or_super_admin()
     AND role = 'editor'
   );
 
 CREATE POLICY "Admins can update editors"
   ON public.admin_users FOR UPDATE
-  USING (
-    auth.uid() IN (SELECT id FROM public.admin_users WHERE role IN ('super_admin', 'admin') AND is_active = true)
-  )
+  USING (public.is_admin_or_super_admin())
   WITH CHECK (
-    role = 'editor' OR auth.uid() IN (SELECT id FROM public.admin_users WHERE role = 'super_admin' AND is_active = true)
+    role = 'editor' OR public.is_super_admin()
   );
 
 -- Trigger function to auto-update the updated_at timestamp

@@ -7,6 +7,13 @@ CREATE TABLE public.rate_limits (
   attempted_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
+
+-- Deny all direct access — only the check_rate_limit SECURITY DEFINER function should access this table
+CREATE POLICY "Deny all access to rate_limits"
+  ON public.rate_limits
+  USING (false);
+
 CREATE INDEX rate_limits_lookup ON public.rate_limits (identifier, action, attempted_at);
 
 -- Function to check rate limit (returns true if allowed, false if exceeded)
