@@ -9,7 +9,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { loginSchema } from '@/lib/schemas/auth'
-import { checkRateLimit } from '@/lib/security/rate-limit'
+import { checkRateLimit, recordFailedAttempt } from '@/lib/security/rate-limit'
 import { getClientIp } from '@/lib/security/get-client-ip'
 
 export async function POST(request: Request) {
@@ -63,6 +63,8 @@ export async function POST(request: Request) {
 
     if (authError || !data.user) {
       console.warn('[Auth] Login failed:', authError?.message)
+      // Record this failed attempt for rate limiting
+      await recordFailedAttempt(ip, 'login')
       // Enforce minimum response time to prevent timing oracle enumeration
       const elapsed = Date.now() - requestStart
       if (elapsed < MIN_RESPONSE_MS) {
@@ -84,6 +86,8 @@ export async function POST(request: Request) {
 
     if (adminError || !adminUser || !adminUser.is_active) {
       await supabase.auth.signOut()
+      // Record this failed attempt for rate limiting
+      await recordFailedAttempt(ip, 'login')
       // Enforce minimum response time to prevent timing oracle enumeration
       const elapsed = Date.now() - requestStart
       if (elapsed < MIN_RESPONSE_MS) {

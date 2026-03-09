@@ -16,7 +16,8 @@ CREATE POLICY "Deny all access to rate_limits"
 
 CREATE INDEX rate_limits_lookup ON public.rate_limits (identifier, action, attempted_at);
 
--- Function to check rate limit (returns true if allowed, false if exceeded)
+-- Function to check rate limit (read-only, no side effects)
+-- Returns true if allowed (under limit), false if exceeded
 -- Usage: SELECT check_rate_limit('192.168.1.1', 'login', 5, 300)
 -- SECURITY: Set search_path to empty string to prevent schema shadowing attacks
 CREATE OR REPLACE FUNCTION public.check_rate_limit(
@@ -30,21 +31,35 @@ AS $$
 DECLARE
   attempt_count INTEGER;
 BEGIN
-  -- Count attempts in the time window
+  -- Count attempts in the time window (ONLY failed attempts recorded by record_failed_attempt)
   SELECT COUNT(*) INTO attempt_count
   FROM public.rate_limits
   WHERE identifier = p_identifier
     AND action = p_action
     AND attempted_at > now() - (p_window_seconds || ' seconds')::INTERVAL;
 
-  -- If at or over limit, return false
+  -- If at or over limit, return false (blocked)
   IF attempt_count >= p_max_attempts THEN
     RETURN false;
   END IF;
 
-  -- Record this attempt
-  INSERT INTO public.rate_limits (identifier, action) VALUES (p_identifier, p_action);
+  -- Under limit, return true (allowed)
   RETURN true;
+END;
+$$;
+
+-- Function to record a failed attempt (only called after auth failure)
+-- Must be called separately from check_rate_limit to distinguish failed vs successful attempts
+-- Usage: SELECT record_failed_attempt('192.168.1.1', 'login')
+-- SECURITY: Set search_path to empty string to prevent schema shadowing attacks
+CREATE OR REPLACE FUNCTION public.record_failed_attempt(
+  p_identifier TEXT,
+  p_action TEXT
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  INSERT INTO public.rate_limits (identifier, action) VALUES (p_identifier, p_action);
 END;
 $$;
 
