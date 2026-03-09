@@ -34,17 +34,20 @@ const nextConfig: NextConfig = {
           // Blocks XSS by disallowing inline scripts and restricting resource sources
           {
             key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'", // Only allow resources from same origin
-              "script-src 'self'", // Only allow scripts from same origin (no inline)
-              "style-src 'self' 'unsafe-inline'", // Allow styles from self + inline (needed for styled-components/tailwind)
-              "img-src 'self' data: https:", // Allow images from self, data URLs, and https
-              "font-src 'self' data:", // Allow fonts from self and data URLs
-              "connect-src 'self' https://api.github.com", // Allow API calls to self and GitHub API (if needed)
-              "frame-ancestors 'none'", // Prevent framing (supersedes X-Frame-Options)
-              "base-uri 'self'", // Restrict base tag
-              "form-action 'self'", // Restrict form submissions to same origin
-            ].join('; '),
+            value: (() => {
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+              return [
+                "default-src 'self'", // Only allow resources from same origin
+                "script-src 'self'", // Only allow scripts from same origin (no inline)
+                "style-src 'self' 'unsafe-inline'", // Allow styles from self + inline (needed for styled-components/tailwind)
+                "img-src 'self' data: https:", // Allow images from self, data URLs, and https
+                "font-src 'self' data:", // Allow fonts from self and data URLs
+                `connect-src 'self' ${supabaseUrl} ${supabaseUrl?.replace('https://', 'wss://')}`, // Allow Supabase API and WebSocket
+                "frame-ancestors 'none'", // Prevent framing (supersedes X-Frame-Options)
+                "base-uri 'self'", // Restrict base tag
+                "form-action 'self'", // Restrict form submissions to same origin
+              ].join('; ')
+            })(),
           },
         ],
       },

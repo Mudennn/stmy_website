@@ -46,8 +46,9 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to cleanup old rate limit entries (can be called via pg_cron or manually)
+-- SECURITY DEFINER required to bypass deny-all RLS policy on rate_limits table
 CREATE OR REPLACE FUNCTION public.cleanup_rate_limits() RETURNS void AS $$
 BEGIN
   DELETE FROM public.rate_limits WHERE attempted_at < now() - INTERVAL '1 hour';
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

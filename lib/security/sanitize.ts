@@ -24,7 +24,16 @@ import DOMPurify from 'isomorphic-dompurify'
 export function sanitizeHtml(input: string): string {
   if (!input) return ''
 
-  return DOMPurify.sanitize(input, {
+  // Add hook to enforce rel="noopener noreferrer" on target="_blank" links
+  // Prevents reverse tabnapping attacks where the opened page can redirect the opener tab
+  const purify = DOMPurify
+  purify.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+      node.setAttribute('rel', 'noopener noreferrer')
+    }
+  })
+
+  return purify.sanitize(input, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
     ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
     KEEP_CONTENT: true,
