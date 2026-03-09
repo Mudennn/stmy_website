@@ -42,6 +42,12 @@ export async function logoutAction(): Promise<never> {
  * Only Super Admin can invite other admins.
  * Admins can only invite editors.
  *
+ * IMPORTANT: Requires SMTP to be configured in Supabase before production use.
+ * See docs/AUTH_IMPLEMENTATION.md#email--invitations for setup instructions.
+ *
+ * Currently creates auth user but cannot send invitation emails without SMTP.
+ * TODO: Update to use inviteUserByEmail() once SMTP is configured.
+ *
  * 1. Verifies current user is admin/super_admin
  * 2. Validates invite data
  * 3. Creates auth user via service role

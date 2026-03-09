@@ -13,6 +13,14 @@
 
 import DOMPurify from 'isomorphic-dompurify'
 
+// Register hook once at module load to prevent accumulation across invocations
+// Prevents reverse tabnapping attacks where the opened page can redirect the opener tab
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+    node.setAttribute('rel', 'noopener noreferrer')
+  }
+})
+
 /**
  * Sanitizes HTML input to remove dangerous tags and attributes.
  * Uses DOMPurify allowlist for robust XSS prevention.
@@ -24,16 +32,7 @@ import DOMPurify from 'isomorphic-dompurify'
 export function sanitizeHtml(input: string): string {
   if (!input) return ''
 
-  // Add hook to enforce rel="noopener noreferrer" on target="_blank" links
-  // Prevents reverse tabnapping attacks where the opened page can redirect the opener tab
-  const purify = DOMPurify
-  purify.addHook('afterSanitizeAttributes', (node) => {
-    if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
-      node.setAttribute('rel', 'noopener noreferrer')
-    }
-  })
-
-  return purify.sanitize(input, {
+  return DOMPurify.sanitize(input, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
     ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
     KEEP_CONTENT: true,

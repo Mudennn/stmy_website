@@ -31,14 +31,15 @@ const nextConfig: NextConfig = {
             value: 'camera=(), microphone=(), geolocation=()',
           },
           // Content Security Policy - restrictive policy for admin panel
-          // Blocks XSS by disallowing inline scripts and restricting resource sources
+          // Restricts resource sources; allows inline scripts needed for Next.js RSC hydration
+          // TODO: Replace 'unsafe-inline' with per-request nonce for stricter XSS protection
           {
             key: 'Content-Security-Policy',
             value: (() => {
               const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
               return [
                 "default-src 'self'", // Only allow resources from same origin
-                "script-src 'self'", // Only allow scripts from same origin (no inline)
+                "script-src 'self' 'unsafe-inline'", // Allow inline scripts for Next.js RSC payload + client hydration
                 "style-src 'self' 'unsafe-inline'", // Allow styles from self + inline (needed for styled-components/tailwind)
                 "img-src 'self' data: https:", // Allow images from self, data URLs, and https
                 "font-src 'self' data:", // Allow fonts from self and data URLs

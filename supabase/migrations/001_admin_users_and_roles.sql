@@ -70,7 +70,10 @@ CREATE POLICY "Admins can manage editors"
 
 CREATE POLICY "Admins can update editors"
   ON public.admin_users FOR UPDATE
-  USING (public.is_admin_or_super_admin())
+  USING (
+    public.is_super_admin()
+    OR (public.is_admin_or_super_admin() AND role = 'editor')
+  )
   WITH CHECK (
     role = 'editor' OR public.is_super_admin()
   );
