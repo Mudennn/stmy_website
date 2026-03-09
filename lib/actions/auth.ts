@@ -29,11 +29,32 @@ export type InviteUserData = {
 
 /**
  * Handles admin logout.
- * Signs out the user and redirects to login page.
+ * Signs out the user via Supabase auth and redirects to login page.
+ *
+ * SECURITY: Even if signOut() fails (network error, API error), we still redirect
+ * to login. This ensures:
+ * 1. User is sent to login page and app navigates away from protected content
+ * 2. signOut() clears auth state and cookies on success
+ * 3. If signOut() fails, the session cookie may remain valid temporarily, but:
+ *    - Middleware checks session validity on every request
+ *    - If token is revoked server-side, getUser() will return null
+ *    - User is redirected to /login by middleware
+ * 4. If both fail (e.g., server completely unavailable), user is still on login page
+ *    with no way to access protected routes (middleware blocks them)
  */
 export async function logoutAction(): Promise<never> {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+
+  // Attempt to sign out from Supabase (revoke tokens, clear auth state, delete cookies)
+  const { error } = await supabase.auth.signOut()
+
+  if (error) {
+    console.error('[Auth] Sign out failed:', error.message)
+    // Continue with redirect anyway — user intends to logout
+    // Middleware will validate session on next request
+  }
+
+  // Redirect to login page
   redirect('/login')
 }
 

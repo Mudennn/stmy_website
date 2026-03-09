@@ -73,3 +73,16 @@ BEGIN
   DELETE FROM public.rate_limits WHERE attempted_at < now() - INTERVAL '1 hour';
 END;
 $$;
+
+-- ============================================================================
+-- CRITICAL: Revoke direct execution from unprivileged roles
+-- ============================================================================
+-- By default, Supabase grants EXECUTE to anon and authenticated roles.
+-- This would allow unauthenticated clients to:
+--   1. Call record_failed_attempt() in a loop to lock out any IP (DoS on rate limiting)
+--   2. Call cleanup_rate_limits() to erase their own rate limit records
+--
+-- All legitimate calls go through the server-side recordFailedAttempt() wrapper,
+-- so client-side access is not needed.
+REVOKE EXECUTE ON FUNCTION public.record_failed_attempt(TEXT, TEXT) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.cleanup_rate_limits() FROM anon, authenticated;
