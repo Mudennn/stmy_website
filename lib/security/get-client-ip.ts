@@ -15,6 +15,8 @@
  * If accessing the server directly without a reverse proxy, any IP can be spoofed.
  */
 
+import { isIPv4, isIPv6 } from 'net'
+
 interface HeadersLike {
   get(name: string): string | null
 }
@@ -53,22 +55,8 @@ export function getClientIp(headers: HeadersLike): string {
 
 /**
  * Validate that a string looks like a valid IP address (IPv4 or IPv6)
- * Uses strict regex patterns to prevent header injection attacks
+ * Uses Node's net module for robust validation including IPv4-mapped IPv6 addresses
  */
 function isValidIp(ip: string): boolean {
-  // IPv4: strict validation
-  const ipv4Regex =
-    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-  if (ipv4Regex.test(ip)) {
-    return true
-  }
-
-  // IPv6: must contain only hex digits and colons, with at least 2 colons
-  // (simplified; full RFC 4291 validation would be more complex)
-  const ipv6Regex = /^[0-9a-fA-F:]+$/
-  if (ip.includes(':') && ipv6Regex.test(ip) && (ip.match(/:/g) || []).length >= 2) {
-    return true
-  }
-
-  return false
+  return isIPv4(ip) || isIPv6(ip)
 }
