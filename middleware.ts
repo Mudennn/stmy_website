@@ -14,6 +14,19 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
+/**
+ * Helper to forward refreshed cookies from supabaseResponse to a redirect response.
+ * Per Supabase SSR guide, any response that's not supabaseResponse should have
+ * the refreshed cookies copied over to ensure token refresh doesn't get lost.
+ */
+function redirectWithCookies(supabaseResponse: NextResponse, url: URL): NextResponse {
+  const redirectResponse = NextResponse.redirect(url)
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+  })
+  return redirectResponse
+}
+
 export async function middleware(request: NextRequest) {
   // Start with the next response
   const supabaseResponse = NextResponse.next({
@@ -55,7 +68,7 @@ export async function middleware(request: NextRequest) {
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
-    return NextResponse.redirect(loginUrl)
+    return redirectWithCookies(supabaseResponse, loginUrl)
   }
 
   // Don't redirect authenticated users away from /login in middleware
@@ -66,7 +79,7 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === '/signup') {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
-    return NextResponse.redirect(loginUrl)
+    return redirectWithCookies(supabaseResponse, loginUrl)
   }
 
   return supabaseResponse
