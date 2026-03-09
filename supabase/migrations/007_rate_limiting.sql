@@ -15,6 +15,7 @@ CREATE POLICY "Deny all access to rate_limits"
   USING (false);
 
 CREATE INDEX rate_limits_lookup ON public.rate_limits (identifier, action, attempted_at);
+CREATE INDEX rate_limits_cleanup_idx ON public.rate_limits (attempted_at);
 
 -- Function to check rate limit (read-only, no side effects)
 -- Returns true if allowed (under limit), false if exceeded

@@ -237,8 +237,11 @@ export async function checkRateLimit(
     }
   } catch (err) {
     console.error('[RateLimit] Database check failed:', err)
-    // Database unreachable - in-memory limiter is the protection
-    dbAllowed = true // Don't fail-open, in-memory already controls this
+    // NOTE: For IPs with no in-memory history this effectively fails open.
+    // Acceptable trade-off: DB outage shouldn't lock out legitimate admin users.
+    // On serverless (Vercel), the in-memory map is empty on cold starts, so
+    // new attacker IPs during DB outages have unlimited attempts.
+    dbAllowed = true
   }
 
   // DECISION: Block only if database explicitly says no

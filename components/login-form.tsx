@@ -53,7 +53,8 @@ export function LoginForm({
         if (!result.success) {
           setError(result.error)
         } else {
-          // Redirect to dashboard
+          // Invalidate cache before navigating to ensure fresh server render
+          router.refresh()
           router.push('/dashboard')
         }
       } catch (err) {
