@@ -9,7 +9,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { loginSchema } from '@/lib/schemas/auth'
-import { checkRateLimit, recordFailedAttempt } from '@/lib/security/rate-limit'
+import { checkRateLimit, recordFailedAttempt, LOGIN_RATE_LIMIT } from '@/lib/security/rate-limit'
 import { getClientIp } from '@/lib/security/get-client-ip'
 
 export async function POST(request: Request) {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const headersList = await headers()
     const ip = getClientIp(headersList)
 
-    const rateLimitOk = await checkRateLimit(ip, 'login', 5, 300)
+    const rateLimitOk = await checkRateLimit(ip, 'login', LOGIN_RATE_LIMIT.maxAttempts, LOGIN_RATE_LIMIT.windowSeconds)
     if (!rateLimitOk) {
       // Enforce minimum response time
       const elapsed = Date.now() - requestStart
@@ -63,8 +63,8 @@ export async function POST(request: Request) {
 
     if (authError || !data.user) {
       console.warn('[Auth] Login failed:', authError?.message)
-      // Record this failed attempt for rate limiting (5 attempts in 300 seconds)
-      await recordFailedAttempt(ip, 'login', 300)
+      // Record this failed attempt for rate limiting
+      await recordFailedAttempt(ip, 'login', LOGIN_RATE_LIMIT.windowSeconds)
       // Enforce minimum response time to prevent timing oracle enumeration
       const elapsed = Date.now() - requestStart
       if (elapsed < MIN_RESPONSE_MS) {
@@ -90,8 +90,8 @@ export async function POST(request: Request) {
         console.error('[Auth] Failed to sign out non-admin user:', signOutError.message)
         // Session cookie may remain valid; getSession() on next /dashboard request will re-verify
       }
-      // Record this failed attempt for rate limiting (5 attempts in 300 seconds)
-      await recordFailedAttempt(ip, 'login', 300)
+      // Record this failed attempt for rate limiting
+      await recordFailedAttempt(ip, 'login', LOGIN_RATE_LIMIT.windowSeconds)
       // Enforce minimum response time to prevent timing oracle enumeration
       const elapsed = Date.now() - requestStart
       if (elapsed < MIN_RESPONSE_MS) {

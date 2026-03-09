@@ -27,6 +27,13 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
+ * Shared rate limit configuration for login attempts.
+ * Used by both in-memory and database layers to ensure windows stay in sync.
+ * If this changes, both recordFailedAttempt and checkRateLimit will use the same values.
+ */
+export const LOGIN_RATE_LIMIT = { maxAttempts: 5, windowSeconds: 300 } as const
+
+/**
  * Type-safe RPC function arguments for record_failed_attempt.
  * Ensures parameter names match the PostgreSQL function signature.
  */
@@ -124,14 +131,18 @@ function pruneExpiredEntries(): void {
  * Only called when authentication actually fails, not on every attempt.
  * This prevents legitimate successful logins from consuming rate limit budget.
  *
+ * IMPORTANT: windowSeconds MUST match the checkRateLimit window to keep in-memory and
+ * database layers in sync. Use shared constants (e.g., LOGIN_RATE_LIMIT.windowSeconds)
+ * to ensure both layers enforce the same time window.
+ *
  * @param identifier - IP address or user ID that failed
  * @param action - Action type (e.g., 'login')
- * @param windowSeconds - Time window in seconds (should match checkRateLimit window, default: 60)
+ * @param windowSeconds - Time window in seconds (must match checkRateLimit's windowSeconds)
  */
 export async function recordFailedAttempt(
   identifier: string,
   action: string,
-  windowSeconds: number = 60
+  windowSeconds: number
 ): Promise<void> {
   const now = Date.now()
   const key = `${identifier}:${action}`

@@ -32,10 +32,15 @@ CREATE VIEW public.events_public AS
 SELECT
   id,
   title,
+  slug,
   description,
+  image_url,
   event_date,
+  end_date,
   location,
+  luma_url,
   status,
+  tags,
   created_at,
   updated_at
 FROM public.events
@@ -53,7 +58,15 @@ SELECT
   id,
   full_name,
   role_title,
+  company,
+  bio,
+  avatar_url,
+  twitter_url,
+  skill_tags,
+  achievements,
+  is_featured,
   is_active,
+  sort_order,
   created_at,
   updated_at
 FROM public.members
@@ -73,6 +86,7 @@ SELECT
   logo_url,
   website_url,
   is_active,
+  sort_order,
   created_at,
   updated_at
 FROM public.partners
@@ -92,6 +106,9 @@ SELECT
   title,
   subtitle,
   body,
+  image_url,
+  metadata,
+  sort_order,
   is_published,
   created_at,
   updated_at
