@@ -46,6 +46,8 @@ SELECT
 FROM public.events
 WHERE status = 'published';
 
+ALTER VIEW public.events_public OWNER TO postgres;
+
 -- ============================================================================
 -- MEMBERS VIEW
 -- ============================================================================
@@ -72,6 +74,8 @@ SELECT
 FROM public.members
 WHERE is_active = true;
 
+ALTER VIEW public.members_public OWNER TO postgres;
+
 -- ============================================================================
 -- PARTNERS VIEW
 -- ============================================================================
@@ -91,6 +95,8 @@ SELECT
   updated_at
 FROM public.partners
 WHERE is_active = true;
+
+ALTER VIEW public.partners_public OWNER TO postgres;
 
 -- ============================================================================
 -- CMS_CONTENT VIEW
@@ -115,6 +121,8 @@ SELECT
 FROM public.cms_content
 WHERE is_published = true;
 
+ALTER VIEW public.cms_content_public OWNER TO postgres;
+
 -- ============================================================================
 -- ANNOUNCEMENTS VIEW
 -- ============================================================================
@@ -137,6 +145,8 @@ FROM public.announcements
 WHERE is_active = true
   AND (starts_at IS NULL OR starts_at <= now())
   AND (ends_at IS NULL OR ends_at >= now());
+
+ALTER VIEW public.announcements_public OWNER TO postgres;
 
 -- ============================================================================
 -- GRANTS

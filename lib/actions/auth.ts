@@ -133,7 +133,7 @@ export async function inviteUserAction(
     if (createError || !authData.user) {
       return {
         success: false,
-        error: createError?.message || 'Failed to create user account',
+        error: 'Failed to create user account. The email may already be registered.',
       }
     }
 
