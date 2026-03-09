@@ -78,10 +78,13 @@ export async function logoutAction(): Promise<never> {
 export async function inviteUserAction(
   formData: FormData
 ): Promise<ActionResult<InviteUserData>> {
+  // getSession() must be outside try/catch — if the user is unauthenticated,
+  // getSession() calls redirect('/login') which throws a NEXT_REDIRECT error.
+  // Catching it would swallow the redirect and return a generic error instead.
+  const { adminUser: currentUser } = await getSession()
+
   try {
     // 1. Verify current user is admin/super_admin
-    const { adminUser: currentUser } = await getSession()
-
     if (currentUser.role !== 'super_admin' && currentUser.role !== 'admin') {
       return {
         success: false,

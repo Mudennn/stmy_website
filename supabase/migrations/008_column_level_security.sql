@@ -5,8 +5,14 @@
 -- PostgreSQL OR-combines permissive policies, so public users could read all columns
 -- of published/active records, including admin references.
 --
--- SOLUTION: Create views that exclude sensitive columns (created_by, updated_by, etc.)
--- and move public policies from tables to views. Admin access remains on tables.
+-- SOLUTION: Create SECURITY DEFINER-equivalent views (owned by postgres) that embed
+-- row-filter logic directly in their WHERE clause. Because the view owner (postgres)
+-- has BYPASSRLS, the base table is accessed without evaluating base table RLS. The
+-- WHERE clause provides row filtering and the SELECT list provides column restriction.
+--
+-- Do NOT use view-level RLS policies — SECURITY INVOKER (the default) would cause
+-- RLS to be re-evaluated as the anon caller, blocking all rows since no permissive
+-- policy for anon exists on the base tables after the public policies are dropped.
 --
 -- Tables affected:
 --   - events: Public can read published events
@@ -19,6 +25,9 @@
 -- EVENTS VIEW
 -- ============================================================================
 
+-- Drop existing public policy from base table (anon must go through the view)
+DROP POLICY "Public can read published events" ON public.events;
+
 CREATE VIEW public.events_public AS
 SELECT
   id,
@@ -29,44 +38,33 @@ SELECT
   status,
   created_at,
   updated_at
-FROM public.events;
-
-ALTER TABLE public.events_public ENABLE ROW LEVEL SECURITY;
-
--- Move public policy from table to view
-DROP POLICY "Public can read published events" ON public.events;
-
-CREATE POLICY "Public can read published events"
-  ON public.events_public FOR SELECT
-  USING (status = 'published');
+FROM public.events
+WHERE status = 'published';
 
 -- ============================================================================
 -- MEMBERS VIEW
 -- ============================================================================
 
+-- Drop existing public policy from base table (anon must go through the view)
+DROP POLICY "Public can read active members" ON public.members;
+
 CREATE VIEW public.members_public AS
 SELECT
   id,
   full_name,
-  email,
   role_title,
   is_active,
   created_at,
   updated_at
-FROM public.members;
-
-ALTER TABLE public.members_public ENABLE ROW LEVEL SECURITY;
-
--- Move public policy from table to view
-DROP POLICY "Public can read active members" ON public.members;
-
-CREATE POLICY "Public can read active members"
-  ON public.members_public FOR SELECT
-  USING (is_active = true);
+FROM public.members
+WHERE is_active = true;
 
 -- ============================================================================
 -- PARTNERS VIEW
 -- ============================================================================
+
+-- Drop existing public policy from base table (anon must go through the view)
+DROP POLICY "Public can read active partners" ON public.partners;
 
 CREATE VIEW public.partners_public AS
 SELECT
@@ -77,20 +75,15 @@ SELECT
   is_active,
   created_at,
   updated_at
-FROM public.partners;
-
-ALTER TABLE public.partners_public ENABLE ROW LEVEL SECURITY;
-
--- Move public policy from table to view
-DROP POLICY "Public can read active partners" ON public.partners;
-
-CREATE POLICY "Public can read active partners"
-  ON public.partners_public FOR SELECT
-  USING (is_active = true);
+FROM public.partners
+WHERE is_active = true;
 
 -- ============================================================================
 -- CMS_CONTENT VIEW
 -- ============================================================================
+
+-- Drop existing public policy from base table (anon must go through the view)
+DROP POLICY "Public can read published cms_content" ON public.cms_content;
 
 CREATE VIEW public.cms_content_public AS
 SELECT
@@ -102,20 +95,15 @@ SELECT
   is_published,
   created_at,
   updated_at
-FROM public.cms_content;
-
-ALTER TABLE public.cms_content_public ENABLE ROW LEVEL SECURITY;
-
--- Move public policy from table to view
-DROP POLICY "Public can read published cms_content" ON public.cms_content;
-
-CREATE POLICY "Public can read published cms_content"
-  ON public.cms_content_public FOR SELECT
-  USING (is_published = true);
+FROM public.cms_content
+WHERE is_published = true;
 
 -- ============================================================================
 -- ANNOUNCEMENTS VIEW
 -- ============================================================================
+
+-- Drop existing public policy from base table (anon must go through the view)
+DROP POLICY "Public can read active announcements" ON public.announcements;
 
 CREATE VIEW public.announcements_public AS
 SELECT
@@ -128,54 +116,31 @@ SELECT
   is_active,
   created_at,
   updated_at
-FROM public.announcements;
-
-ALTER TABLE public.announcements_public ENABLE ROW LEVEL SECURITY;
-
--- Move public policy from table to view
-DROP POLICY "Public can read active announcements" ON public.announcements;
-
-CREATE POLICY "Public can read active announcements"
-  ON public.announcements_public FOR SELECT
-  USING (is_active = true);
-
--- ============================================================================
--- SECURITY: Add deny-all policies to prevent accidental direct access
--- ============================================================================
--- Public users cannot directly query tables; they must use views
-
-CREATE POLICY "Deny public access to events table"
-  ON public.events FOR SELECT
-  USING (false);
-
-CREATE POLICY "Deny public access to members table"
-  ON public.members FOR SELECT
-  USING (false);
-
-CREATE POLICY "Deny public access to partners table"
-  ON public.partners FOR SELECT
-  USING (false);
-
-CREATE POLICY "Deny public access to cms_content table"
-  ON public.cms_content FOR SELECT
-  USING (false);
-
-CREATE POLICY "Deny public access to announcements table"
-  ON public.announcements FOR SELECT
-  USING (false);
+FROM public.announcements
+WHERE is_active = true
+  AND (starts_at IS NULL OR starts_at <= now())
+  AND (ends_at IS NULL OR ends_at >= now());
 
 -- ============================================================================
 -- DOCUMENTATION
 -- ============================================================================
 --
+-- How it works:
+-- -------------
+-- Views are created by postgres (owner), which has BYPASSRLS. When anon queries
+-- a view, PostgreSQL uses the view owner's privileges to access the base table,
+-- bypassing base table RLS entirely. Row filtering is enforced by the WHERE clause
+-- in the view definition; column restriction is enforced by the SELECT list.
+--
+-- anon cannot directly query the base tables because the only remaining policy is
+-- the admin-only one (is_active_admin()), and RLS fails-closed when no permissive
+-- policy matches the calling user.
+--
 -- How to use:
 -- -----------
 -- Admin/Editor API queries: SELECT FROM public.events (full access via is_active_admin())
--- Public API queries:       SELECT FROM public.events_public (limited columns)
+-- Public API queries:       SELECT FROM public.events_public (limited columns, published only)
 --
 -- Public views are read-only and automatically updated when base tables change.
--- If you add new sensitive columns to a table, add them to the deny list in the view.
---
--- Example update - if you add password_hash to users:
---   ALTER VIEW public.users_public AS SELECT id, name, email, ... (exclude password_hash)
+-- If you add new sensitive columns to a table, ensure they are NOT in the view SELECT list.
 --
