@@ -86,6 +86,9 @@ export async function middleware(request: NextRequest) {
 }
 
 // Configure which routes trigger the middleware
+// NOTE: /login and /signup removed from matcher since they're only visited by
+// unauthenticated users. The login page has its own redirect check for authenticated
+// users. Middleware focus: refresh session for /dashboard and /api routes.
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/signup', '/api/:path*'],
+  matcher: ['/dashboard/:path*', '/api/:path*'],
 }

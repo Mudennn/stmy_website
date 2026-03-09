@@ -88,3 +88,15 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.check_rate_limit(TEXT, TEXT, INTEGER, INTEGER) FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.record_failed_attempt(TEXT, TEXT) FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.cleanup_rate_limits() FROM anon, authenticated;
+
+-- ============================================================================
+-- AUTOMATIC CLEANUP SCHEDULING
+-- ============================================================================
+-- Schedule hourly cleanup of expired rate limit entries using pg_cron
+-- Requires pg_cron extension (enabled by default in Supabase)
+-- Removes entries older than 1 hour to prevent unbounded table growth
+SELECT cron.schedule(
+  'cleanup-rate-limits',
+  '0 * * * *',  -- Every hour at the top of the hour
+  $$SELECT public.cleanup_rate_limits();$$
+);
