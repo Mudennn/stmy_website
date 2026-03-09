@@ -32,15 +32,12 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             })
           } catch (err) {
-            // In Server Components, cookie setting fails but that's okay — middleware will refresh on next request.
-            // In Server Actions/Route Handlers, cookies should set successfully.
-            if (process.env.NODE_ENV === 'development') {
-              const msg = err instanceof Error ? err.message : String(err)
-              if (msg.includes('Cookies can only be modified')) {
-                // Expected in Server Components, skip logging
-              } else {
-                console.error('[Supabase] Cookie set error:', msg)
-              }
+            const msg = err instanceof Error ? err.message : String(err)
+            // Only ignore the expected Server Component error; log all other failures
+            // In Route Handlers/Server Actions, cookies MUST be set successfully.
+            // Any other error indicates a real authentication problem.
+            if (!msg.includes('Cookies can only be modified')) {
+              console.error('[Supabase] Unexpected cookie set error:', msg)
             }
           }
         },

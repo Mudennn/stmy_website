@@ -42,8 +42,8 @@ export async function middleware(request: NextRequest) {
     const { data: { user: authUser } } = await supabase.auth.getUser()
     user = authUser
   } catch (error) {
-    // If session check fails, allow request to proceed
-    // The loginAction and getSession will handle auth properly
+    // If session check fails (e.g. Supabase unreachable), user stays null.
+    // Dashboard routes will be redirected to /login (fail-closed).
     console.error('[Middleware] Auth check failed:', error instanceof Error ? error.message : 'Unknown error')
   }
 
