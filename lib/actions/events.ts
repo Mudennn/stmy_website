@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getSession, requireAdmin } from '@/lib/auth/session'
-import { eventSchema, eventFilterSchema } from '@/lib/schemas/event'
+import { eventSchema, eventUpdateSchema, eventFilterSchema } from '@/lib/schemas/event'
 import type { Database } from '@/types/database'
 import { z } from 'zod'
 
@@ -189,7 +189,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   }
 
   // Validate input
-  const data = eventSchema.partial().parse(input)
+  const data = eventUpdateSchema.parse(input)
 
   const supabase = await createClient()
   const adminClient = createAdminClient()
@@ -241,12 +241,12 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
 
   if (data.title) updateData.title = data.title
   if (data.slug) updateData.slug = data.slug
-  if (data.description !== undefined) updateData.description = data.description
+  if (data.description !== undefined) updateData.description = data.description || null
   if (data.eventDate) updateData.event_date = data.eventDate
   if (data.endDate !== undefined) updateData.end_date = data.endDate || null
-  if (data.location !== undefined) updateData.location = data.location
-  if (data.locationUrl !== undefined) updateData.location_url = data.locationUrl
-  if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl
+  if (data.location !== undefined) updateData.location = data.location || null
+  if (data.locationUrl !== undefined) updateData.location_url = data.locationUrl || null
+  if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl || null
   if (data.status) updateData.status = data.status
   if (data.capacity !== undefined) updateData.capacity = data.capacity
 

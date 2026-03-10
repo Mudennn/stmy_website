@@ -11,6 +11,19 @@ if (!supabaseUrl) {
 
 const nextConfig: NextConfig = {
   /**
+   * Image optimization configuration
+   * Allows next/image to serve images from Supabase storage buckets
+   */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+    ],
+  },
+
+  /**
    * Security headers configuration
    * Protects against XSS, clickjacking, and other common web vulnerabilities
    */

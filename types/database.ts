@@ -46,45 +46,33 @@ export type Database = {
       }
       announcements: {
         Row: {
-          bg_color: string | null
           created_at: string
           created_by: string | null
           ends_at: string | null
           id: string
           is_active: boolean | null
-          link_text: string | null
-          link_url: string | null
           message: string
           starts_at: string | null
-          text_color: string | null
           updated_at: string
         }
         Insert: {
-          bg_color?: string | null
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
           id?: string
           is_active?: boolean | null
-          link_text?: string | null
-          link_url?: string | null
           message: string
           starts_at?: string | null
-          text_color?: string | null
           updated_at?: string
         }
         Update: {
-          bg_color?: string | null
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
           id?: string
           is_active?: boolean | null
-          link_text?: string | null
-          link_url?: string | null
           message?: string
           starts_at?: string | null
-          text_color?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -223,14 +211,12 @@ export type Database = {
           company: string | null
           created_at: string
           created_by: string | null
-          email: string | null
           full_name: string
           id: string
           is_active: boolean | null
           is_featured: boolean | null
           role_title: string | null
           skill_tags: string[] | null
-          sort_order: number | null
           twitter_url: string | null
           updated_at: string
         }
@@ -241,14 +227,12 @@ export type Database = {
           company?: string | null
           created_at?: string
           created_by?: string | null
-          email?: string | null
           full_name: string
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           role_title?: string | null
           skill_tags?: string[] | null
-          sort_order?: number | null
           twitter_url?: string | null
           updated_at?: string
         }
@@ -259,14 +243,12 @@ export type Database = {
           company?: string | null
           created_at?: string
           created_by?: string | null
-          email?: string | null
           full_name?: string
           id?: string
           is_active?: boolean | null
           is_featured?: boolean | null
           role_title?: string | null
           skill_tags?: string[] | null
-          sort_order?: number | null
           twitter_url?: string | null
           updated_at?: string
         }
@@ -288,9 +270,7 @@ export type Database = {
           is_active: boolean | null
           logo_url: string | null
           name: string
-          sort_order: number | null
           updated_at: string
-          website_url: string | null
         }
         Insert: {
           created_at?: string
@@ -299,9 +279,7 @@ export type Database = {
           is_active?: boolean | null
           logo_url?: string | null
           name: string
-          sort_order?: number | null
           updated_at?: string
-          website_url?: string | null
         }
         Update: {
           created_at?: string
@@ -310,9 +288,7 @@ export type Database = {
           is_active?: boolean | null
           logo_url?: string | null
           name?: string
-          sort_order?: number | null
           updated_at?: string
-          website_url?: string | null
         }
         Relationships: [
           {
