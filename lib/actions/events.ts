@@ -11,12 +11,21 @@ type Event = Database['public']['Tables']['events']['Row']
 
 /**
  * Fetch all events with filtering, searching, and pagination.
- * Public read access: only published events are visible to unauthenticated users.
+ * Authenticated users can see all events and filter by any status.
+ * Unauthenticated users can only see published events.
  */
 export async function getEvents(
   filters: Partial<z.infer<typeof eventFilterSchema>> = {}
 ) {
   const supabase = await createClient()
+
+  // Check authentication
+  let session: Awaited<ReturnType<typeof getSession>> | null = null
+  try {
+    session = await getSession()
+  } catch {
+    // Unauthenticated user
+  }
 
   // Validate filters
   const validFilters = eventFilterSchema.parse(filters)
@@ -25,14 +34,16 @@ export async function getEvents(
   // Build query
   let query = supabase.from('events').select('*', { count: 'exact' })
 
+  // Restrict unauthenticated callers to published events only
+  if (!session) {
+    query = query.eq('status', 'published')
+  } else if (status) {
+    query = query.eq('status', status)
+  }
+
   // Search by title
   if (search) {
     query = query.ilike('title', `%${search}%`)
-  }
-
-  // Filter by status
-  if (status) {
-    query = query.eq('status', status)
   }
 
   // Sorting
@@ -83,12 +94,11 @@ export async function getEvent(id: string): Promise<Event> {
  * Requires admin or super_admin role.
  */
 export async function createEvent(input: unknown): Promise<Event> {
-  await requireAdmin()
+  const session = await requireAdmin()
 
   // Validate input
   const data = eventSchema.parse(input)
 
-  const session = await getSession()
   const supabase = await createClient()
   const adminClient = createAdminClient()
 

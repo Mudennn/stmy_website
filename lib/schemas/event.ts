@@ -5,7 +5,7 @@ import { z } from 'zod'
  */
 export const eventSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255),
-  slug: z.string().min(1, 'Slug is required').max(255),
+  slug: z.string().min(1, 'Slug is required').max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, numbers, and hyphens only'),
   description: z.string().max(5000).nullable().optional(),
   eventDate: z.string().min(1, 'Event date is required'),
   endDate: z.string().nullable().optional(),
