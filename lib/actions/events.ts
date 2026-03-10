@@ -195,6 +195,15 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   const supabase = await createClient()
   const adminClient = createAdminClient()
 
+  // Validate cross-field date constraint for partial updates
+  // If only endDate is being updated, fetch current eventDate and ensure endDate is after it
+  if (data.endDate && !data.eventDate) {
+    const { data: currentEvent } = await supabase.from('events').select('event_date').eq('id', id).single()
+    if (currentEvent?.event_date && data.endDate < currentEvent.event_date) {
+      throw new Error('End date must be after event date')
+    }
+  }
+
   // Build update object
   const updateData: Partial<Database['public']['Tables']['events']['Update']> = {
     updated_at: new Date().toISOString(),
@@ -235,7 +244,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   if (data.slug) updateData.slug = data.slug
   if (data.description !== undefined) updateData.description = data.description
   if (data.eventDate) updateData.event_date = data.eventDate
-  if (data.endDate !== undefined) updateData.end_date = data.endDate
+  if (data.endDate !== undefined) updateData.end_date = data.endDate || null
   if (data.location !== undefined) updateData.location = data.location
   if (data.locationUrl !== undefined) updateData.location_url = data.locationUrl
   if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl

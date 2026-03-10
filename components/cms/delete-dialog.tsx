@@ -24,8 +24,11 @@ export function DeleteDialog({
   const [open, setOpen] = React.useState(false)
 
   const handleConfirm = async () => {
-    await onConfirm()
-    setOpen(false)
+    try {
+      await onConfirm()
+    } finally {
+      setOpen(false)
+    }
   }
 
   if (!open) {

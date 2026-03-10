@@ -36,7 +36,7 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const [formData, setFormData] = useState<EventFormData>(
+  const [formData, setFormData] = useState<Omit<EventFormData, 'tags'>>(
     isEditMode && event
       ? {
           title: event.title,
@@ -50,7 +50,6 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
           image: undefined,
           status: event.status,
           capacity: event.capacity || undefined,
-          tags: event.tags || [],
         }
       : {
           title: '',
@@ -64,7 +63,6 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
           image: undefined,
           status: 'draft',
           capacity: undefined,
-          tags: [],
         }
   )
   const [currentImageUrl] = useState<string | null>(
@@ -72,7 +70,7 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
   )
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const handleFieldChange = (field: keyof EventFormData, value: EventFormData[keyof EventFormData]) => {
+  const handleFieldChange = (field: keyof Omit<EventFormData, 'tags'>, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // Clear error for this field
     if (errors[field]) {
@@ -99,7 +97,7 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
         image: formData.image,
         status: formData.status,
         capacity: formData.capacity,
-        tags: formData.tags,
+        tags: [],
       }
 
       // Validate form data with Zod
