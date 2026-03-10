@@ -177,8 +177,13 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
 
   // Handle image upload if a new file is provided
   let filePath: string | null = null
+  let oldImageUrl: string | null = null
 
   if (data.image) {
+    // Fetch existing image URL before upload so we can clean it up after a successful update
+    const { data: existing } = await supabase.from('events').select('image_url').eq('id', id).single()
+    oldImageUrl = existing?.image_url ?? null
+
     const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
     filePath = `events/${fileName}`
@@ -232,6 +237,18 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
     throw new Error('Event not found')
   }
 
+  // Clean up old image after successful DB update — non-fatal
+  if (oldImageUrl) {
+    try {
+      const oldPath = new URL(oldImageUrl).pathname.split('/event-images/')[1]
+      if (oldPath) {
+        await adminClient.storage.from('event-images').remove([oldPath])
+      }
+    } catch {
+      console.error('Failed to clean up old storage object for updated event', id)
+    }
+  }
+
   return event
 }
 
@@ -259,11 +276,15 @@ export async function deleteEvent(id: string): Promise<void> {
     throw new Error(`Failed to delete event: ${error.message}`)
   }
 
-  // Clean up orphaned storage object
+  // Clean up orphaned storage object — non-fatal
   if (event?.image_url) {
-    const filePath = new URL(event.image_url).pathname.split('/event-images/')[1]
-    if (filePath) {
-      await adminClient.storage.from('event-images').remove([filePath])
+    try {
+      const filePath = new URL(event.image_url).pathname.split('/event-images/')[1]
+      if (filePath) {
+        await adminClient.storage.from('event-images').remove([filePath])
+      }
+    } catch {
+      console.error('Failed to clean up storage object for deleted event', id)
     }
   }
 }

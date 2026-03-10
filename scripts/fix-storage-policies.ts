@@ -1,49 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
-import * as fs from "fs";
-import * as path from "path";
+import { execSync } from "child_process";
 
-// Load .env.local
-const envPath = path.join(process.cwd(), ".env.local");
-const envContent = fs.readFileSync(envPath, "utf-8");
-const envVars = Object.fromEntries(
-  envContent
-    .split("\n")
-    .filter((line) => line && !line.startsWith("#"))
-    .map((line) => {
-      const idx = line.indexOf("=");
-      return [line.slice(0, idx), line.slice(idx + 1)];
-    })
-);
-
-const supabaseUrl = envVars["NEXT_PUBLIC_SUPABASE_URL"];
-const supabaseServiceKey = envVars["SUPABASE_SERVICE_ROLE_KEY"];
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
-
-async function fixPolicies() {
-  try {
-    // Read the migration file
-    const migrationPath = path.join(process.cwd(), "supabase/migrations/009_storage_buckets.sql");
-    const sql = fs.readFileSync(migrationPath, "utf-8");
-
-    // Execute the migration
-    const { error } = await supabase.rpc("exec", { sql });
-
-    if (error) {
-      console.error("✗ Failed to apply policies:", error);
-      process.exit(1);
-    }
-
-    console.log("✓ Storage policies updated");
-  } catch (error) {
-    console.error("✗ Error:", error);
-    process.exit(1);
-  }
+/**
+ * Apply storage bucket policies by pushing migrations via the Supabase CLI.
+ * Requires the Supabase CLI to be installed and `supabase link` to have been run.
+ * Alternatively, paste supabase/migrations/009_storage_buckets.sql into the Supabase SQL editor.
+ */
+try {
+  execSync("npx supabase db push", { stdio: "inherit" });
+  console.log("✓ Storage policies updated");
+} catch {
+  console.error("✗ Failed to apply policies. Run manually: npx supabase db push");
+  process.exit(1);
 }
-
-fixPolicies();

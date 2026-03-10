@@ -103,6 +103,8 @@ export function createEventColumns(currentRole: UserRole): ColumnDef<Event>[] {
     header: 'Title',
     cell: ({ row }) => {
       const event = row.original
+      const canEdit = ['editor', 'admin', 'super_admin'].includes(currentRole)
+      if (!canEdit) return <span>{event.title}</span>
       return (
         <Link
           href={`/dashboard/events/${event.id}`}
