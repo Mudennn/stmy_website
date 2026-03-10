@@ -3,7 +3,7 @@ import { getEvents } from '@/lib/actions/events'
 import { EventsTable } from '@/components/events/events-table'
 
 interface EventsPageProps {
-  searchParams: Promise<{ page?: string; pageSize?: string; search?: string; status?: string }>
+  searchParams: Promise<{ page?: string; pageSize?: string; search?: string; filter?: string }>
 }
 
 /**
@@ -17,7 +17,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const page = params.page ? parseInt(params.page) : 1
   const pageSize = params.pageSize ? parseInt(params.pageSize) : 10
   const search = params.search
-  const status = params.status as any
+  const status = params.filter as 'draft' | 'published' | 'cancelled' | 'completed' | undefined
 
   // Fetch events from database
   const { events, totalCount } = await getEvents({

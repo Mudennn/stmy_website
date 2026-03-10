@@ -75,6 +75,7 @@ export function ResourceTable<TData, TValue>({
   filters,
   searchPlaceholder = 'Search...',
 }: ResourceTableProps<TData, TValue>) {
+  'use no memo'
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -82,6 +83,7 @@ export function ResourceTable<TData, TValue>({
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

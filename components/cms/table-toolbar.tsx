@@ -42,7 +42,7 @@ export function TableToolbar({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [search, setSearch] = React.useState(searchParams.get('search') ?? '')
-  const searchTimeout = React.useRef<NodeJS.Timeout>()
+  const searchTimeout = React.useRef<NodeJS.Timeout | undefined>(undefined)
 
   const handleSearchChange = (value: string) => {
     setSearch(value)

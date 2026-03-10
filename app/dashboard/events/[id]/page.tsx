@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import { getSession } from '@/lib/auth/session'
 import { getEvent } from '@/lib/actions/events'
 import { FormShell } from '@/components/cms'
 import { EventForm } from '@/components/events/event-form'
@@ -13,22 +12,22 @@ interface EventPageProps {
  * Fetches event data and renders the form in edit mode.
  */
 export default async function EventPage({ params }: EventPageProps) {
-  const session = await getSession()
   const { id } = await params
 
+  let event
   try {
-    const event = await getEvent(id)
-
-    return (
-      <FormShell
-        title="Edit Event"
-        description="Update event details and settings"
-        backHref="/dashboard/events"
-      >
-        <EventForm event={event} isEditMode={true} />
-      </FormShell>
-    )
-  } catch (error) {
+    event = await getEvent(id)
+  } catch {
     notFound()
   }
+
+  return (
+    <FormShell
+      title="Edit Event"
+      description="Update event details and settings"
+      backHref="/dashboard/events"
+    >
+      <EventForm event={event} isEditMode={true} />
+    </FormShell>
+  )
 }

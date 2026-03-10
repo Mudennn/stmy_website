@@ -11,9 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { EllipsisVerticalIcon, TrashIcon, PencilIcon } from 'lucide-react'
+import { EllipsisVerticalIcon, PencilIcon } from 'lucide-react'
 import Link from 'next/link'
 import { deleteEvent } from '@/lib/actions/events'
+import { DeleteDialog } from '@/components/cms'
 import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
@@ -26,7 +27,6 @@ type Event = Database['public']['Tables']['events']['Row']
 function EventActionCell({ event }: { event: Event }) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -39,38 +39,7 @@ function EventActionCell({ event }: { event: Event }) {
       toast.error(message)
     } finally {
       setIsDeleting(false)
-      setShowDeleteConfirm(false)
     }
-  }
-
-  if (showDeleteConfirm) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-background rounded-lg shadow-lg p-6 max-w-sm mx-4">
-          <h2 className="text-lg font-semibold mb-2">Delete Event?</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            This action cannot be undone.<br />
-            The event <strong>"{event.title}"</strong> will be permanently deleted.
-          </p>
-          <div className="flex gap-3 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteConfirm(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -90,10 +59,14 @@ function EventActionCell({ event }: { event: Event }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
-          onClick={() => setShowDeleteConfirm(true)}
+          onSelect={(e) => e.preventDefault()}
         >
-          <TrashIcon className="h-4 w-4 mr-2" />
-          Delete
+          <DeleteDialog
+            resourceName={`"${event.title}"`}
+            onConfirm={handleDelete}
+            isLoading={isDeleting}
+            trigger={<span>Delete</span>}
+          />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

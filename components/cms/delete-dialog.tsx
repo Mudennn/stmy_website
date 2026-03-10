@@ -6,7 +6,7 @@ import { TrashIcon } from 'lucide-react'
 
 interface DeleteDialogProps {
   resourceName: string
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
   isLoading?: boolean
   trigger?: React.ReactNode
 }
@@ -23,8 +23,8 @@ export function DeleteDialog({
 }: DeleteDialogProps) {
   const [open, setOpen] = React.useState(false)
 
-  const handleConfirm = () => {
-    onConfirm()
+  const handleConfirm = async () => {
+    await onConfirm()
     setOpen(false)
   }
 

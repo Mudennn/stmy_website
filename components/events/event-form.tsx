@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { eventSchema, type EventFormData } from '@/lib/schemas/event'
 import { createEvent, updateEvent } from '@/lib/actions/events'
@@ -46,7 +47,7 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
           location: event.location || '',
           locationUrl: event.location_url || '',
           lumaUrl: event.luma_url || '',
-          imageUrl: event.image_url || '',
+          image: undefined,
           status: event.status,
           capacity: event.capacity || undefined,
           tags: event.tags || [],
@@ -60,14 +61,18 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
           location: '',
           locationUrl: '',
           lumaUrl: '',
-          imageUrl: '',
+          image: undefined,
           status: 'draft',
           capacity: undefined,
           tags: [],
         }
   )
+  const [currentImageUrl] = useState<string | null>(
+    isEditMode && event?.image_url ? event.image_url : null
+  )
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const handleFieldChange = (field: keyof EventFormData, value: any) => {
+  const handleFieldChange = (field: keyof EventFormData, value: EventFormData[keyof EventFormData]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // Clear error for this field
     if (errors[field]) {
@@ -75,20 +80,36 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
     }
   }
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setErrors({})
 
     try {
+      // Create submission data object with File if present
+      const submitData = {
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description,
+        eventDate: formData.eventDate,
+        endDate: formData.endDate,
+        location: formData.location,
+        locationUrl: formData.locationUrl,
+        lumaUrl: formData.lumaUrl,
+        image: formData.image,
+        status: formData.status,
+        capacity: formData.capacity,
+        tags: formData.tags,
+      }
+
       // Validate form data with Zod
-      eventSchema.parse(formData)
+      eventSchema.parse(submitData)
 
       if (isEditMode && event) {
-        await updateEvent(event.id, formData)
+        await updateEvent(event.id, submitData)
         toast.success('Event updated successfully')
       } else {
-        await createEvent(formData)
+        await createEvent(submitData)
         toast.success('Event created successfully')
       }
       router.push('/dashboard/events')
@@ -230,18 +251,56 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
         )}
       </Field>
 
-      {/* Image URL */}
+      {/* Image Upload */}
       <Field>
-        <Label htmlFor="imageUrl">Image URL</Label>
-        <Input
-          id="imageUrl"
-          type="url"
-          placeholder="https://example.com/image.jpg"
-          value={formData.imageUrl || ''}
-          onChange={(e) => handleFieldChange('imageUrl', e.target.value)}
-        />
-        {errors['imageUrl'] && (
-          <p className="text-sm text-destructive">{errors['imageUrl']}</p>
+        <Label htmlFor="image">Event Image</Label>
+        <div className="space-y-3">
+          {(currentImageUrl || previewUrl) && (
+            <div className="relative w-full h-48 bg-muted rounded-md overflow-hidden">
+              <Image
+                src={previewUrl || currentImageUrl || ''}
+                alt="Event preview"
+                fill
+                className="object-cover"
+              />
+              {previewUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewUrl(null)
+                    handleFieldChange('image', undefined)
+                  }}
+                  className="absolute top-2 right-2 bg-destructive text-white rounded-md px-2 py-1 text-xs hover:bg-destructive/90"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
+          <Input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                handleFieldChange('image', file)
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                  setPreviewUrl(reader.result as string)
+                }
+                reader.readAsDataURL(file)
+              }
+            }}
+          />
+          <p className="text-xs text-muted-foreground">
+            {isEditMode && currentImageUrl && !previewUrl
+              ? 'Upload a new image to replace the current one'
+              : 'Supported formats: JPG, PNG, WebP (max 5MB)'}
+          </p>
+        </div>
+        {errors['image'] && (
+          <p className="text-sm text-destructive">{errors['image']}</p>
         )}
       </Field>
 

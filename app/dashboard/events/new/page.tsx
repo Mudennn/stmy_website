@@ -1,4 +1,4 @@
-import { getSession, requireAdmin } from '@/lib/auth/session'
+import { requireAdmin } from '@/lib/auth/session'
 import { FormShell } from '@/components/cms'
 import { EventForm } from '@/components/events/event-form'
 

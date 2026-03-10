@@ -90,6 +90,31 @@ export async function createEvent(input: unknown): Promise<Event> {
   const session = await getSession()
   const supabase = await createClient()
 
+  // Upload image if provided
+  let imageUrl: string | null = null
+  if (data.image) {
+    const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+    const filePath = `events/${fileName}`
+
+    const buffer = await data.image.arrayBuffer()
+    const { error: uploadError } = await supabase.storage
+      .from('event-images')
+      .upload(filePath, Buffer.from(buffer), {
+        contentType: data.image.type,
+      })
+
+    if (uploadError) {
+      throw new Error(`Failed to upload image: ${uploadError.message}`)
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('event-images')
+      .getPublicUrl(filePath)
+
+    imageUrl = publicUrlData.publicUrl
+  }
+
   const { data: event, error } = await supabase
     .from('events')
     .insert({
@@ -101,7 +126,7 @@ export async function createEvent(input: unknown): Promise<Event> {
       location: data.location || null,
       location_url: data.locationUrl || null,
       luma_url: data.lumaUrl || null,
-      image_url: data.imageUrl || null,
+      image_url: imageUrl,
       status: data.status,
       capacity: data.capacity || null,
       tags: data.tags || null,
@@ -127,6 +152,9 @@ export async function createEvent(input: unknown): Promise<Event> {
  */
 export async function updateEvent(id: string, input: unknown): Promise<Event> {
   const session = await getSession()
+  if (!['editor', 'admin', 'super_admin'].includes(session.adminUser.role)) {
+    throw new Error('Unauthorized')
+  }
 
   // Validate input
   const data = eventSchema.partial().parse(input)
@@ -138,6 +166,30 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
     updated_at: new Date().toISOString(),
   }
 
+  // Handle image upload if a new file is provided
+  if (data.image) {
+    const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+    const filePath = `events/${fileName}`
+
+    const buffer = await data.image.arrayBuffer()
+    const { error: uploadError } = await supabase.storage
+      .from('event-images')
+      .upload(filePath, Buffer.from(buffer), {
+        contentType: data.image.type,
+      })
+
+    if (uploadError) {
+      throw new Error(`Failed to upload image: ${uploadError.message}`)
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('event-images')
+      .getPublicUrl(filePath)
+
+    updateData.image_url = publicUrlData.publicUrl
+  }
+
   if (data.title) updateData.title = data.title
   if (data.slug) updateData.slug = data.slug
   if (data.description !== undefined) updateData.description = data.description
@@ -146,7 +198,6 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   if (data.location !== undefined) updateData.location = data.location
   if (data.locationUrl !== undefined) updateData.location_url = data.locationUrl
   if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl
-  if (data.imageUrl !== undefined) updateData.image_url = data.imageUrl
   if (data.status) updateData.status = data.status
   if (data.capacity !== undefined) updateData.capacity = data.capacity
   if (data.tags !== undefined) updateData.tags = data.tags
