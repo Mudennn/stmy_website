@@ -14,13 +14,32 @@ import type { Database } from '@/types/database'
  *
  * Note: Cookie setting can fail in Server Components but will work in Server Actions/Route Handlers.
  * The middleware refreshes the session on subsequent requests, so silent failures are acceptable.
+ *
+ * Throws descriptive error if required environment variables are missing.
  */
 export async function createClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl) {
+    throw new Error(
+      '[Server Client] Missing NEXT_PUBLIC_SUPABASE_URL environment variable. ' +
+      'Cannot create Supabase client without Supabase URL.'
+    )
+  }
+
+  if (!anonKey) {
+    throw new Error(
+      '[Server Client] Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable. ' +
+      'Cannot create Supabase client without anon key.'
+    )
+  }
+
   const cookieStore = await cookies()
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    anonKey,
     {
       cookies: {
         getAll() {
