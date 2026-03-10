@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ResourceTable } from '@/components/cms'
 import { createEventColumns } from './events-columns'
@@ -28,10 +29,11 @@ export function EventsTable({
   currentRole,
 }: EventsTableProps) {
   const router = useRouter()
+  const columns = useMemo(() => createEventColumns(currentRole), [currentRole])
 
   return (
     <ResourceTable
-      columns={createEventColumns(currentRole)}
+      columns={columns}
       data={events}
       totalCount={totalCount}
       currentPage={currentPage}
