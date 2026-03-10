@@ -1,4 +1,5 @@
 "use client"
+"use no memo" // Disable React Compiler memoization due to TanStack Table's useReactTable API
 
 import * as React from "react"
 import {

@@ -1,70 +1,123 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+'use client'
+
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from '@/components/ui/card'
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+  FieldError,
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 
+/**
+ * Login form for admin users.
+ * Calls /api/auth/login Route Handler which properly handles cookies.
+ */
 export function LoginForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<'div'>) {
+  const router = useRouter()
+  const [error, setError] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
+    const formData = new FormData(e.currentTarget)
+
+    startTransition(async () => {
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.get('email'),
+            password: formData.get('password'),
+          }),
+        })
+
+        const result = await response.json()
+
+        if (!result.success) {
+          setError(result.error)
+        } else {
+          // Invalidate cache before navigating to ensure fresh server render
+          router.refresh()
+          router.push('/dashboard')
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Login failed'
+        setError(message)
+      }
+    })
+  }
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Admin Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Sign in to access the Superteam Malaysia CMS dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <FieldGroup>
+              {error && (
+                <Field>
+                  <FieldError>{error}</FieldError>
+                </Field>
+              )}
+
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="admin@example.com"
                   required
+                  autoComplete="email"
                 />
               </Field>
+
               <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input id="password" type="password" required />
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                />
               </Field>
+
               <Field>
-                <Button type="submit">Login</Button>
-                <Button variant="outline" type="button">
-                  Login with Google
+                <Button type="submit" disabled={isPending} className="w-full">
+                  {isPending ? 'Signing in...' : 'Sign In'}
                 </Button>
-                <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
-                </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
         </CardContent>
       </Card>
+
+      <FieldDescription className="text-center text-xs text-muted-foreground">
+        Admin access only. Contact your administrator for account access.
+      </FieldDescription>
     </div>
   )
 }

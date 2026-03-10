@@ -1,10 +1,9 @@
-"use client"
+'use client'
 
 import {
   Avatar,
   AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+} from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,25 +12,61 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+} from '@/components/ui/sidebar'
+import { Badge } from '@/components/ui/badge'
+import { EllipsisVerticalIcon, LogOutIcon } from 'lucide-react'
+import { toast } from 'sonner'
+import { logoutAction } from '@/lib/actions/auth'
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
+interface NavUserProps {
+  user?: {
+    email?: string
+    name?: string
+    role?: 'super_admin' | 'admin' | 'editor'
   }
-}) {
+}
+
+/**
+ * NavUser dropdown component.
+ * Displays user info and logout button in sidebar footer.
+ * Shows role badge for admin/super_admin users.
+ */
+export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar()
+  const displayName = user?.name || user?.email?.split('@')[0] || 'User'
+  const displayEmail = user?.email || 'No email'
+  const roleLabel = user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : 'Editor'
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+
+  async function handleLogout() {
+    try {
+      await logoutAction()
+    } catch (err) {
+      // logoutAction() calls redirect('/login') which throws an error with a
+      // digest starting with 'NEXT_REDIRECT'. Identify it via digest, not message
+      // (err.message is the redirect URL, not the string 'NEXT_REDIRECT').
+      // Don't show error toast for redirects — they're expected and successful.
+      if (
+        err instanceof Error &&
+        (err as Error & { digest?: string }).digest?.startsWith('NEXT_REDIRECT')
+      ) {
+        return
+      }
+      // Genuine error (e.g., signOut or auth client failure)
+      console.error('[Auth] Logout failed:', err)
+      toast.error('Sign out failed. Please try again.')
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -42,14 +77,13 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{displayName}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {user.email}
+                  {roleLabel}
                 </span>
               </div>
               <EllipsisVerticalIcon className="ml-auto size-4" />
@@ -57,47 +91,35 @@ export function NavUser({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{displayName}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {user.email}
+                    {displayEmail}
                   </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <CircleUserRoundIcon
-                />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon
-                />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon
-                />
-                Notifications
+              <DropdownMenuItem disabled className="gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {roleLabel}
+                </Badge>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon
-              />
-              Log out
+            <DropdownMenuItem onClick={handleLogout} className="gap-2">
+              <LogOutIcon className="size-4" />
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
