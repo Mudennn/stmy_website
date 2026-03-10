@@ -36,7 +36,7 @@ export const contentFilterSchema = z.object({
     .optional(),
   isPublished: z.enum(['true', 'false']).optional(),
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().positive().default(10),
+  pageSize: z.number().int().positive().max(100).default(10),
   sortBy: z.enum(['section', 'sort_order', 'updated_at']).default('sort_order'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 })

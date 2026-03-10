@@ -29,7 +29,7 @@ export const memberFilterSchema = z.object({
   isFeatured: z.enum(['true', 'false']).optional(),
   isActive: z.enum(['true', 'false']).optional(),
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().positive().default(10),
+  pageSize: z.number().int().positive().max(100).default(10),
   sortBy: z.enum(['full_name', 'created_at']).default('created_at'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 })

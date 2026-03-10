@@ -79,7 +79,7 @@ export const eventFilterSchema = z.object({
   search: z.string().optional(),
   status: z.enum(['draft', 'published', 'cancelled', 'completed']).optional(),
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().positive().default(10),
+  pageSize: z.number().int().positive().max(100).default(10),
   sortBy: z.enum(['title', 'event_date', 'created_at']).default('event_date'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })

@@ -20,7 +20,7 @@ export const announcementFilterSchema = z.object({
   search: z.string().optional(),
   isActive: z.enum(['true', 'false']).optional(),
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().positive().default(10),
+  pageSize: z.number().int().positive().max(100).default(10),
   sortBy: z.enum(['created_at', 'starts_at']).default('created_at'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })

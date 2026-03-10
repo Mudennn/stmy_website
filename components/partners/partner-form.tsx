@@ -145,7 +145,7 @@ export function PartnerForm({ partner, isEditMode = false }: PartnerFormProps) {
           <p className="text-xs text-muted-foreground">
             {isEditMode && currentLogoUrl && !previewUrl
               ? 'Upload a new image to replace the current one'
-              : 'Supported formats: JPG, PNG, WebP, SVG (max 5MB)'}
+              : 'Supported formats: JPG, PNG, WebP, GIF (max 5MB)'}
           </p>
         </div>
         {errors['logo'] && <p className="text-sm text-destructive">{errors['logo']}</p>}
