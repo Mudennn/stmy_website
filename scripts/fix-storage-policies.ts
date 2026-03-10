@@ -9,7 +9,10 @@ const envVars = Object.fromEntries(
   envContent
     .split("\n")
     .filter((line) => line && !line.startsWith("#"))
-    .map((line) => line.split("="))
+    .map((line) => {
+      const idx = line.indexOf("=");
+      return [line.slice(0, idx), line.slice(idx + 1)];
+    })
 );
 
 const supabaseUrl = envVars["NEXT_PUBLIC_SUPABASE_URL"];

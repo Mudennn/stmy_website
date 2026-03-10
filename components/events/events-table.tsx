@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { ResourceTable } from '@/components/cms'
-import { eventColumns } from './events-columns'
+import { createEventColumns } from './events-columns'
 import type { Database } from '@/types/database'
 
 type Event = Database['public']['Tables']['events']['Row']
@@ -31,7 +31,7 @@ export function EventsTable({
 
   return (
     <ResourceTable
-      columns={eventColumns}
+      columns={createEventColumns(currentRole)}
       data={events}
       totalCount={totalCount}
       currentPage={currentPage}

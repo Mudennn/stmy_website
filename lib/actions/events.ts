@@ -92,10 +92,12 @@ export async function createEvent(input: unknown): Promise<Event> {
 
   // Upload image if provided
   let imageUrl: string | null = null
+  let filePath: string | null = null
+
   if (data.image) {
     const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-    const filePath = `events/${fileName}`
+    filePath = `events/${fileName}`
 
     const buffer = await data.image.arrayBuffer()
     const { error: uploadError } = await supabase.storage
@@ -136,6 +138,10 @@ export async function createEvent(input: unknown): Promise<Event> {
     .single()
 
   if (error) {
+    // Clean up the orphaned storage object if upload succeeded but DB insert failed
+    if (filePath) {
+      await supabase.storage.from('event-images').remove([filePath])
+    }
     throw new Error(`Failed to create event: ${error.message}`)
   }
 
@@ -167,10 +173,12 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   }
 
   // Handle image upload if a new file is provided
+  let filePath: string | null = null
+
   if (data.image) {
     const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-    const filePath = `events/${fileName}`
+    filePath = `events/${fileName}`
 
     const buffer = await data.image.arrayBuffer()
     const { error: uploadError } = await supabase.storage
@@ -210,6 +218,10 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
     .single()
 
   if (error) {
+    // Clean up the orphaned storage object if upload succeeded but DB update failed
+    if (filePath) {
+      await supabase.storage.from('event-images').remove([filePath])
+    }
     throw new Error(`Failed to update event: ${error.message}`)
   }
 

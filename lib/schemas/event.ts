@@ -12,7 +12,13 @@ export const eventSchema = z.object({
   location: z.string().max(255).nullable().optional(),
   locationUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
   lumaUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
-  image: z.instanceof(File).optional(),
+  image: z
+    .instanceof(File)
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      'Image must be 5 MB or smaller'
+    )
+    .optional(),
   status: z.enum(['draft', 'published', 'cancelled', 'completed']).default('draft'),
   capacity: z.number().int().positive().nullable().optional(),
   tags: z.array(z.string()).default([]),

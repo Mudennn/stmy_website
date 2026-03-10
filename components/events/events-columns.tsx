@@ -19,12 +19,13 @@ import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
 type Event = Database['public']['Tables']['events']['Row']
+type UserRole = Database['public']['Tables']['admin_users']['Row']['role']
 
 /**
  * Action cell component for event rows.
- * Handles edit and delete actions.
+ * Handles edit and delete actions based on user role.
  */
-function EventActionCell({ event }: { event: Event }) {
+function EventActionCell({ event, currentRole }: { event: Event; currentRole: UserRole }) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -42,6 +43,13 @@ function EventActionCell({ event }: { event: Event }) {
     }
   }
 
+  const canEdit = ['editor', 'admin', 'super_admin'].includes(currentRole)
+  const canDelete = ['admin', 'super_admin'].includes(currentRole)
+
+  if (!canEdit && !canDelete) {
+    return null
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -51,23 +59,27 @@ function EventActionCell({ event }: { event: Event }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link href={`/dashboard/events/${event.id}`} className="flex items-center">
-            <PencilIcon className="h-4 w-4 mr-2" />
-            Edit
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
-          onSelect={(e) => e.preventDefault()}
-        >
-          <DeleteDialog
-            resourceName={`"${event.title}"`}
-            onConfirm={handleDelete}
-            isLoading={isDeleting}
-            trigger={<span>Delete</span>}
-          />
-        </DropdownMenuItem>
+        {canEdit && (
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/events/${event.id}`} className="flex items-center">
+              <PencilIcon className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {canDelete && (
+          <DropdownMenuItem
+            className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+            onSelect={(e) => e.preventDefault()}
+          >
+            <DeleteDialog
+              resourceName={`"${event.title}"`}
+              onConfirm={handleDelete}
+              isLoading={isDeleting}
+              trigger={<span>Delete</span>}
+            />
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -84,7 +96,8 @@ const statusColors = {
  * Column definitions for the events table.
  * Used by TanStack React Table for rendering the table structure.
  */
-export const eventColumns: ColumnDef<Event>[] = [
+export function createEventColumns(currentRole: UserRole): ColumnDef<Event>[] {
+  return [
   {
     accessorKey: 'title',
     header: 'Title',
@@ -140,6 +153,7 @@ export const eventColumns: ColumnDef<Event>[] = [
   {
     id: 'actions',
     header: 'Actions',
-    cell: ({ row }) => <EventActionCell event={row.original} />,
+    cell: ({ row }) => <EventActionCell event={row.original} currentRole={currentRole} />,
   },
-]
+  ]
+}
