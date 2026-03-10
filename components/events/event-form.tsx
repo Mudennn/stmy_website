@@ -36,7 +36,7 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const [formData, setFormData] = useState<Omit<EventFormData, 'tags'>>(
+  const [formData, setFormData] = useState<EventFormData>(
     isEditMode && event
       ? {
           title: event.title,

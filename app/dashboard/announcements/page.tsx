@@ -3,7 +3,7 @@ import { getAnnouncements } from '@/lib/actions/announcements'
 import { AnnouncementsTable } from '@/components/announcements/announcements-table'
 
 interface AnnouncementsPageProps {
-  searchParams: Promise<{ page?: string; pageSize?: string; filter?: string }>
+  searchParams: Promise<{ page?: string; pageSize?: string; filter?: string; search?: string }>
 }
 
 /**
@@ -24,7 +24,9 @@ export default async function AnnouncementsPage({ searchParams }: AnnouncementsP
     ? (params.filter as 'true' | 'false')
     : undefined
 
-  const { announcements, totalCount } = await getAnnouncements({ page, pageSize, isActive })
+  const search = params.search?.trim() || undefined
+
+  const { announcements, totalCount } = await getAnnouncements({ page, pageSize, isActive, search })
 
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6 px-4 lg:px-6">

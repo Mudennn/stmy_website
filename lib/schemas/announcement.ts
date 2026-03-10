@@ -17,6 +17,7 @@ export type AnnouncementFormData = z.infer<typeof announcementSchema>
  * Announcement filter and pagination schema for server-side queries.
  */
 export const announcementFilterSchema = z.object({
+  search: z.string().optional(),
   isActive: z.enum(['true', 'false']).optional(),
   page: z.number().int().positive().default(1),
   pageSize: z.number().int().positive().default(10),

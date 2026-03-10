@@ -136,7 +136,7 @@ export function AnnouncementForm({ announcement, isEditMode = false }: Announcem
           Active
         </Label>
         <p className="text-xs text-muted-foreground">
-          Only one announcement can be active at a time. Enabling this will deactivate all others.
+          Only one announcement can be active at a time. Enabling this will fail if another is already active.
         </p>
         {errors['isActive'] && <p className="text-sm text-destructive">{errors['isActive']}</p>}
       </Field>

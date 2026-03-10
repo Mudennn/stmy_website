@@ -26,7 +26,7 @@ export async function getAnnouncements(
   }
 
   const validFilters = announcementFilterSchema.parse(filters)
-  const { isActive, page, pageSize, sortBy, sortOrder } = validFilters
+  const { search, isActive, page, pageSize, sortBy, sortOrder } = validFilters
 
   let query = supabase.from('announcements').select('*', { count: 'exact' })
 
@@ -38,6 +38,10 @@ export async function getAnnouncements(
       .or(`ends_at.is.null,ends_at.gte.${now}`)
   } else if (isActive !== undefined) {
     query = query.eq('is_active', isActive === 'true')
+  }
+
+  if (search) {
+    query = query.ilike('message', `%${search}%`)
   }
 
   query = query.order(sortBy, { ascending: sortOrder === 'asc' })
