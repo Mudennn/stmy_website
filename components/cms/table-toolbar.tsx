@@ -42,13 +42,8 @@ export function TableToolbar({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [search, setSearch] = React.useState(searchParams.get('search') ?? '')
-  const [filterValue, setFilterValue] = React.useState(searchParams.get('filter') ?? 'all')
+  const filterValue = searchParams.get('filter') ?? 'all'
   const searchTimeout = React.useRef<NodeJS.Timeout | undefined>(undefined)
-
-  // Sync filter value when searchParams change (e.g., browser back button)
-  React.useEffect(() => {
-    setFilterValue(searchParams.get('filter') ?? 'all')
-  }, [searchParams])
 
   const handleSearchChange = (value: string) => {
     setSearch(value)
@@ -69,7 +64,6 @@ export function TableToolbar({
   }
 
   const handleFilterChange = (value: string) => {
-    setFilterValue(value)
     const params = new URLSearchParams(searchParams)
     // 'all' value clears the filter
     if (value && value !== 'all') {

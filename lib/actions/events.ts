@@ -3,11 +3,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getSession, requireAdmin } from '@/lib/auth/session'
-import { eventSchema, eventFilterSchema } from '@/lib/schemas/event'
+import { eventSchema, eventUpdateSchema, eventFilterSchema } from '@/lib/schemas/event'
 import type { Database } from '@/types/database'
 import { z } from 'zod'
 
 type Event = Database['public']['Tables']['events']['Row']
+
+const ALLOWED_EVENT_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const EVENT_IMAGE_MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
 
 /**
  * Fetch all events with filtering, searching, and pagination.
@@ -122,7 +130,12 @@ export async function createEvent(input: unknown): Promise<Event> {
   let filePath: string | null = null
 
   if (data.image) {
-    const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_EVENT_IMAGE_TYPES.includes(data.image.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
+    }
+
+    const fileExt = EVENT_IMAGE_MIME_TO_EXT[data.image.type] ?? 'jpg'
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
     filePath = `events/${fileName}`
 
@@ -189,7 +202,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   }
 
   // Validate input
-  const data = eventSchema.partial().parse(input)
+  const data = eventUpdateSchema.parse(input)
 
   const supabase = await createClient()
   const adminClient = createAdminClient()
@@ -213,11 +226,16 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   let oldImageUrl: string | null = null
 
   if (data.image) {
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_EVENT_IMAGE_TYPES.includes(data.image.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
+    }
+
     // Fetch existing image URL before upload so we can clean it up after a successful update
     const { data: existing } = await supabase.from('events').select('image_url').eq('id', id).single()
     oldImageUrl = existing?.image_url ?? null
 
-    const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const fileExt = EVENT_IMAGE_MIME_TO_EXT[data.image.type] ?? 'jpg'
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
     filePath = `events/${fileName}`
 
@@ -241,12 +259,12 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
 
   if (data.title) updateData.title = data.title
   if (data.slug) updateData.slug = data.slug
-  if (data.description !== undefined) updateData.description = data.description
+  if (data.description !== undefined) updateData.description = data.description || null
   if (data.eventDate) updateData.event_date = data.eventDate
   if (data.endDate !== undefined) updateData.end_date = data.endDate || null
-  if (data.location !== undefined) updateData.location = data.location
-  if (data.locationUrl !== undefined) updateData.location_url = data.locationUrl
-  if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl
+  if (data.location !== undefined) updateData.location = data.location || null
+  if (data.locationUrl !== undefined) updateData.location_url = data.locationUrl || null
+  if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl || null
   if (data.status) updateData.status = data.status
   if (data.capacity !== undefined) updateData.capacity = data.capacity
 

@@ -28,20 +28,43 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 async function createBucket() {
   try {
     // Create event-images bucket
-    const { error } = await supabase.storage.createBucket(
+    const { error: eventError } = await supabase.storage.createBucket(
       "event-images",
       { public: true }
     );
 
-    if (error) {
-      if (error.message.includes("already exists")) {
-        console.log("✓ Bucket 'event-images' already exists");
-      } else {
-        throw error;
+    if (eventError) {
+      if (!eventError.message.includes("already exists")) {
+        throw eventError;
       }
-    } else {
-      console.log("✓ Created bucket 'event-images'");
     }
+    console.log("✓ Bucket 'event-images' ready");
+
+    // Create member-images bucket
+    const { error: memberError } = await supabase.storage.createBucket(
+      "member-images",
+      { public: true }
+    );
+
+    if (memberError) {
+      if (!memberError.message.includes("already exists")) {
+        throw memberError;
+      }
+    }
+    console.log("✓ Bucket 'member-images' ready");
+
+    // Create partner-images bucket
+    const { error: partnerError } = await supabase.storage.createBucket(
+      "partner-images",
+      { public: true }
+    );
+
+    if (partnerError) {
+      if (!partnerError.message.includes("already exists")) {
+        throw partnerError;
+      }
+    }
+    console.log("✓ Bucket 'partner-images' ready");
 
     console.log("✓ Storage setup complete");
   } catch (error) {

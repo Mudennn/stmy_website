@@ -36,7 +36,7 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const [formData, setFormData] = useState<Omit<EventFormData, 'tags'>>(
+  const [formData, setFormData] = useState<EventFormData>(
     isEditMode && event
       ? {
           title: event.title,
@@ -70,7 +70,7 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
   )
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const handleFieldChange = (field: keyof Omit<EventFormData, 'tags'>, value: any) => {
+  const handleFieldChange = (field: keyof EventFormData, value: string | number | File | undefined) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // Clear error for this field
     if (errors[field]) {
