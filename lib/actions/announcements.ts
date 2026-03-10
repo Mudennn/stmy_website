@@ -138,6 +138,11 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
 
   const data = announcementSchema.partial().parse(input)
 
+  // Validate cross-field date constraint when both dates are provided
+  if (data.startsAt && data.endsAt && data.endsAt < data.startsAt) {
+    throw new Error('End time must be after start time')
+  }
+
   // Validate cross-field date constraint for partial updates
   if (data.endsAt && !data.startsAt) {
     const supabase = await createClient()

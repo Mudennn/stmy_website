@@ -121,7 +121,14 @@ export async function createEvent(input: unknown): Promise<Event> {
   let imageUrl: string | null = null
   let filePath: string | null = null
 
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
   if (data.image) {
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_IMAGE_TYPES.includes(data.image.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
+    }
+
     const fileExt = data.image.name.split('.').pop()?.toLowerCase() || 'jpg'
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
     filePath = `events/${fileName}`
@@ -212,7 +219,14 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   let filePath: string | null = null
   let oldImageUrl: string | null = null
 
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
   if (data.image) {
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_IMAGE_TYPES.includes(data.image.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
+    }
+
     // Fetch existing image URL before upload so we can clean it up after a successful update
     const { data: existing } = await supabase.from('events').select('image_url').eq('id', id).single()
     oldImageUrl = existing?.image_url ?? null

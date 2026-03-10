@@ -111,13 +111,30 @@ export async function createMember(input: unknown): Promise<Member> {
     ? data.skillTags.split(',').map((t) => t.trim()).filter(Boolean)
     : []
 
+  // Parse achievements JSON
+  let achievementsObj: Record<string, unknown> | null = null
+  if (data.achievements) {
+    try {
+      achievementsObj = JSON.parse(data.achievements)
+    } catch {
+      throw new Error('Invalid achievements JSON format')
+    }
+  }
+
   const supabase = await createClient()
   const adminClient = createAdminClient()
 
   let avatarUrl: string | null = null
   let filePath: string | null = null
 
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
   if (data.avatar) {
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_IMAGE_TYPES.includes(data.avatar.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
+    }
+
     const ext = data.avatar.name.split('.').pop() ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 
@@ -147,6 +164,7 @@ export async function createMember(input: unknown): Promise<Member> {
       avatar_url: avatarUrl,
       twitter_url: data.twitterUrl || null,
       skill_tags: skillTagsArray,
+      achievements: achievementsObj as Database['public']['Tables']['members']['Insert']['achievements'],
       is_featured: data.isFeatured,
       is_active: data.isActive,
       created_by: session.user.id,
@@ -187,13 +205,34 @@ export async function updateMember(id: string, input: unknown): Promise<Member> 
         : []
       : undefined
 
+  // Parse achievements JSON
+  let achievementsObj: Record<string, unknown> | null | undefined = undefined
+  if (data.achievements !== undefined) {
+    if (data.achievements) {
+      try {
+        achievementsObj = JSON.parse(data.achievements)
+      } catch {
+        throw new Error('Invalid achievements JSON format')
+      }
+    } else {
+      achievementsObj = null
+    }
+  }
+
   const supabase = await createClient()
   const adminClient = createAdminClient()
 
   let newAvatarUrl: string | undefined = undefined
   let filePath: string | null = null
 
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
   if (data.avatar) {
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_IMAGE_TYPES.includes(data.avatar.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
+    }
+
     const ext = data.avatar.name.split('.').pop() ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 
@@ -235,6 +274,7 @@ export async function updateMember(id: string, input: unknown): Promise<Member> 
   if (newAvatarUrl !== undefined) updateData.avatar_url = newAvatarUrl
   if (data.twitterUrl !== undefined) updateData.twitter_url = data.twitterUrl || null
   if (skillTagsArray !== undefined) updateData.skill_tags = skillTagsArray
+  if (achievementsObj !== undefined) updateData.achievements = achievementsObj as Database['public']['Tables']['members']['Update']['achievements']
   if (data.isFeatured !== undefined) updateData.is_featured = data.isFeatured
   if (data.isActive !== undefined) updateData.is_active = data.isActive
 

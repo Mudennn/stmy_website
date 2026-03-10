@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +11,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { EllipsisVerticalIcon, PencilIcon } from 'lucide-react'
 import Link from 'next/link'
-import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
 type CmsContent = Database['public']['Tables']['cms_content']['Row']

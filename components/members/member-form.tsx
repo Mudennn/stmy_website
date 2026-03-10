@@ -37,6 +37,7 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
           bio: member.bio || '',
           twitterUrl: member.twitter_url || '',
           skillTags: member.skill_tags?.join(', ') || '',
+          achievements: member.achievements ? JSON.stringify(member.achievements) : '',
           isFeatured: member.is_featured ?? false,
           isActive: member.is_active ?? true,
         }
@@ -47,6 +48,7 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
           bio: '',
           twitterUrl: '',
           skillTags: '',
+          achievements: '',
           isFeatured: false,
           isActive: true,
         }
@@ -225,6 +227,20 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
         />
         <p className="text-xs text-muted-foreground">Comma-separated list of skills</p>
         {errors['skillTags'] && <p className="text-sm text-destructive">{errors['skillTags']}</p>}
+      </Field>
+
+      {/* Achievements */}
+      <Field>
+        <Label htmlFor="achievements">Achievements</Label>
+        <textarea
+          id="achievements"
+          placeholder='e.g., {"title":"Award Name","year":2024}'
+          className="h-24 w-full px-3 py-2 rounded-md border border-input bg-background text-xs font-mono"
+          value={formData.achievements || ''}
+          onChange={(e) => handleFieldChange('achievements', e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">Optional JSON format for achievements/awards</p>
+        {errors['achievements'] && <p className="text-sm text-destructive">{errors['achievements']}</p>}
       </Field>
 
       {/* Featured and Active */}

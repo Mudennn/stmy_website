@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { EllipsisVerticalIcon, PencilIcon } from 'lucide-react'
+import { EllipsisVerticalIcon, PencilIcon, TrashIcon } from 'lucide-react'
 import Link from 'next/link'
 import { deleteEvent } from '@/lib/actions/events'
 import { DeleteDialog } from '@/components/cms'
@@ -74,7 +74,7 @@ function EventActionCell({ event, currentRole }: { event: Event; currentRole: Us
               className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
               onSelect={() => setIsConfirmOpen(true)}
             >
-              Delete
+             <TrashIcon className="h-4 w-4 mr-2" /> Delete
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

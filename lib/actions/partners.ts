@@ -108,7 +108,14 @@ export async function createPartner(input: unknown): Promise<Partner> {
   let logoUrl: string | null = null
   let filePath: string | null = null
 
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+
   if (data.logo) {
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_IMAGE_TYPES.includes(data.logo.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF, SVG')
+    }
+
     const ext = data.logo.name.split('.').pop() ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 
@@ -171,7 +178,14 @@ export async function updatePartner(id: string, input: unknown): Promise<Partner
   let newLogoUrl: string | undefined = undefined
   let filePath: string | null = null
 
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+
   if (data.logo) {
+    // Validate MIME type to prevent client-controlled content-type spoofing
+    if (!ALLOWED_IMAGE_TYPES.includes(data.logo.type)) {
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF, SVG')
+    }
+
     const ext = data.logo.name.split('.').pop() ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 

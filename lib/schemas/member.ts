@@ -14,6 +14,7 @@ export const memberSchema = z.object({
     .optional(),
   twitterUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
   skillTags: z.string().optional(), // comma-separated, converted to array in action
+  achievements: z.string().optional(), // JSON string, converted to object in action
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
 })
