@@ -9,19 +9,33 @@ interface DeleteDialogProps {
   onConfirm: () => void | Promise<void>
   isLoading?: boolean
   trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 /**
  * Confirmation dialog for deleting a resource.
  * Renders a trash icon button by default, or a custom trigger.
+ * Can be controlled via `open` and `onOpenChange` props, or uncontrolled with internal state.
  */
 export function DeleteDialog({
   resourceName,
   onConfirm,
   isLoading = false,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: DeleteDialogProps) {
-  const [open, setOpen] = React.useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen
+
+  const setOpen = (value: boolean) => {
+    if (controlledOpen !== undefined) {
+      onOpenChange?.(value)
+    } else {
+      setUncontrolledOpen(value)
+    }
+  }
 
   const handleConfirm = async () => {
     try {

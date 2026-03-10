@@ -17,7 +17,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const page = params.page ? parseInt(params.page) : 1
   const pageSize = params.pageSize ? parseInt(params.pageSize) : 10
   const search = params.search
-  const status = params.filter as 'draft' | 'published' | 'cancelled' | 'completed' | undefined
+
+  const validStatuses = ['draft', 'published', 'cancelled', 'completed'] as const
+  const status = validStatuses.includes(params.filter as typeof validStatuses[number])
+    ? (params.filter as 'draft' | 'published' | 'cancelled' | 'completed')
+    : undefined
 
   // Fetch events from database
   const { events, totalCount } = await getEvents({

@@ -28,6 +28,7 @@ type UserRole = Database['public']['Tables']['admin_users']['Row']['role']
 function EventActionCell({ event, currentRole }: { event: Event; currentRole: UserRole }) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -51,37 +52,44 @@ function EventActionCell({ event, currentRole }: { event: Event; currentRole: Us
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <EllipsisVerticalIcon className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {canEdit && (
-          <DropdownMenuItem asChild>
-            <Link href={`/dashboard/events/${event.id}`} className="flex items-center">
-              <PencilIcon className="h-4 w-4 mr-2" />
-              Edit
-            </Link>
-          </DropdownMenuItem>
-        )}
-        {canDelete && (
-          <DropdownMenuItem
-            className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
-            onSelect={(e) => e.preventDefault()}
-          >
-            <DeleteDialog
-              resourceName={`"${event.title}"`}
-              onConfirm={handleDelete}
-              isLoading={isDeleting}
-              trigger={<span>Delete</span>}
-            />
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <EllipsisVerticalIcon className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {canEdit && (
+            <DropdownMenuItem asChild>
+              <Link href={`/dashboard/events/${event.id}`} className="flex items-center">
+                <PencilIcon className="h-4 w-4 mr-2" />
+                Edit
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {canDelete && (
+            <DropdownMenuItem
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+              onSelect={() => setIsConfirmOpen(true)}
+            >
+              Delete
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {canDelete && (
+        <DeleteDialog
+          resourceName={`"${event.title}"`}
+          onConfirm={handleDelete}
+          isLoading={isDeleting}
+          open={isConfirmOpen}
+          onOpenChange={setIsConfirmOpen}
+        />
+      )}
+    </>
   )
 }
 
