@@ -93,10 +93,21 @@ REVOKE EXECUTE ON FUNCTION public.cleanup_rate_limits() FROM anon, authenticated
 -- AUTOMATIC CLEANUP SCHEDULING
 -- ============================================================================
 -- Schedule hourly cleanup of expired rate limit entries using pg_cron
--- Requires pg_cron extension (enabled by default in Supabase)
--- Removes entries older than 1 hour to prevent unbounded table growth
-SELECT cron.schedule(
-  'cleanup-rate-limits',
-  '0 * * * *',  -- Every hour at the top of the hour
-  $$SELECT public.cleanup_rate_limits();$$
-);
+-- pg_cron is enabled by default in Supabase Cloud
+-- In local dev (supabase start), pg_cron may not be available
+-- This block gracefully handles both cases
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    PERFORM cron.schedule(
+      'cleanup-rate-limits',
+      '0 * * * *',  -- Every hour at the top of the hour
+      $$SELECT public.cleanup_rate_limits();$$
+    );
+  ELSE
+    RAISE WARNING '[Migration 007] pg_cron extension not available. Rate limit cleanup job not scheduled. ' ||
+                  'In Supabase Cloud, pg_cron is enabled by default. ' ||
+                  'In local dev, enable pg_cron or run SELECT cleanup_rate_limits() manually.';
+  END IF;
+END;
+$$;
