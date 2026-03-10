@@ -18,7 +18,7 @@ export default async function PartnersPage({ searchParams }: PartnersPageProps) 
 
   const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1
   const pageSize = Number.isInteger(rawPageSize) && rawPageSize > 0 ? rawPageSize : 10
-  const search = params.search
+  const search = params.search?.trim() || undefined
 
   const validIsActive = ['true', 'false'] as const
   const isActive = validIsActive.includes(params.filter as (typeof validIsActive)[number])

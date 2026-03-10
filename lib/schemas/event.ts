@@ -60,6 +60,15 @@ export const eventUpdateSchema = z
     capacity: z.number().int().positive().nullable().optional(),
   })
   .partial()
+  .superRefine((data, ctx) => {
+    if (data.endDate && data.eventDate && data.endDate < data.eventDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'End date must be after event date',
+        path: ['endDate'],
+      })
+    }
+  })
 
 export type EventUpdateData = z.infer<typeof eventUpdateSchema>
 
