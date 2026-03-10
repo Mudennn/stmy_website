@@ -9,16 +9,19 @@ if (!supabaseUrl) {
   )
 }
 
+// Extract Supabase hostname for image optimization (restricts to specific project)
+const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : 'supabase.co'
+
 const nextConfig: NextConfig = {
   /**
    * Image optimization configuration
-   * Allows next/image to serve images from Supabase storage buckets
+   * Allows next/image to serve images from this project's Supabase storage bucket only
    */
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '*.supabase.co',
+        hostname: supabaseHostname,
       },
     ],
   },

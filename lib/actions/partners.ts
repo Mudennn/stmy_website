@@ -9,13 +9,12 @@ import { z } from 'zod'
 
 type Partner = Database['public']['Tables']['partners']['Row']
 
-const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const LOGO_MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
   'image/gif': 'gif',
-  'image/svg+xml': 'svg',
 }
 
 /**
@@ -120,7 +119,7 @@ export async function createPartner(input: unknown): Promise<Partner> {
   if (data.logo) {
     // Validate MIME type to prevent client-controlled content-type spoofing
     if (!ALLOWED_LOGO_TYPES.includes(data.logo.type)) {
-      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF, SVG')
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
     }
 
     const ext = LOGO_MIME_TO_EXT[data.logo.type] ?? 'jpg'
@@ -188,7 +187,7 @@ export async function updatePartner(id: string, input: unknown): Promise<Partner
   if (data.logo) {
     // Validate MIME type to prevent client-controlled content-type spoofing
     if (!ALLOWED_LOGO_TYPES.includes(data.logo.type)) {
-      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF, SVG')
+      throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
     }
 
     const ext = LOGO_MIME_TO_EXT[data.logo.type] ?? 'jpg'

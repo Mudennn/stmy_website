@@ -141,6 +141,8 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
 
   const data = announcementSchema.partial().parse(input)
 
+  const supabase = await createClient()
+
   // Validate cross-field date constraint when both dates are provided
   if (data.startsAt && data.endsAt && data.endsAt < data.startsAt) {
     throw new Error('End time must be after start time')
@@ -148,7 +150,6 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
 
   // Validate cross-field date constraint for partial updates
   if (data.endsAt && !data.startsAt) {
-    const supabase = await createClient()
     const { data: current } = await supabase
       .from('announcements')
       .select('starts_at')
@@ -161,7 +162,6 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
 
   // Validate cross-field date constraint when only startsAt is provided
   if (data.startsAt && !data.endsAt) {
-    const supabase = await createClient()
     const { data: current } = await supabase
       .from('announcements')
       .select('ends_at')
@@ -171,8 +171,6 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
       throw new Error('End time must be after start time')
     }
   }
-
-  const supabase = await createClient()
 
   const updateData: Partial<Database['public']['Tables']['announcements']['Update']> = {
     updated_at: new Date().toISOString(),
