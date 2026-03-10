@@ -99,9 +99,6 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
               <a href="/dashboard">
-                <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground font-bold text-sm">
-                  ST
-                </div>
                 <span className="text-base font-semibold">Superteam MY</span>
               </a>
             </SidebarMenuButton>

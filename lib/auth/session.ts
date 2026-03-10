@@ -67,28 +67,30 @@ export async function getSession(): Promise<AuthSession> {
  * Requires the user to be an admin (super_admin or admin role).
  * Throws an error if the user is an editor or not authenticated.
  * Used in Server Actions that require admin access.
+ * Returns the full session to avoid redundant getSession() calls.
  */
-export async function requireAdmin(): Promise<Database['public']['Tables']['admin_users']['Row']> {
-  const { adminUser } = await getSession()
+export async function requireAdmin(): Promise<AuthSession> {
+  const session = await getSession()
 
-  if (adminUser.role !== 'super_admin' && adminUser.role !== 'admin') {
+  if (session.adminUser.role !== 'super_admin' && session.adminUser.role !== 'admin') {
     throw new Error('Forbidden: Admin access required')
   }
 
-  return adminUser
+  return session
 }
 
 /**
  * Requires the user to be a super_admin.
  * Throws an error if the user is an admin or editor.
  * Used in Server Actions that require super admin privileges.
+ * Returns the full session to avoid redundant getSession() calls.
  */
-export async function requireSuperAdmin(): Promise<Database['public']['Tables']['admin_users']['Row']> {
-  const { adminUser } = await getSession()
+export async function requireSuperAdmin(): Promise<AuthSession> {
+  const session = await getSession()
 
-  if (adminUser.role !== 'super_admin') {
+  if (session.adminUser.role !== 'super_admin') {
     throw new Error('Forbidden: Super admin access required')
   }
 
-  return adminUser
+  return session
 }
