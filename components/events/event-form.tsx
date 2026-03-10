@@ -97,7 +97,6 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
         image: formData.image,
         status: formData.status,
         capacity: formData.capacity,
-        tags: [],
       }
 
       // Validate form data with Zod

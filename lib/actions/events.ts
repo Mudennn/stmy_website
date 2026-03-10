@@ -158,7 +158,6 @@ export async function createEvent(input: unknown): Promise<Event> {
       image_url: imageUrl,
       status: data.status,
       capacity: data.capacity || null,
-      tags: data.tags || null,
       created_by: session.user.id,
     })
     .select('*')
@@ -250,7 +249,6 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl
   if (data.status) updateData.status = data.status
   if (data.capacity !== undefined) updateData.capacity = data.capacity
-  if (data.tags !== undefined) updateData.tags = data.tags
 
   const { data: event, error } = await supabase
     .from('events')

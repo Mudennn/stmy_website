@@ -22,7 +22,6 @@ export const eventSchema = z
       .optional(),
     status: z.enum(['draft', 'published', 'cancelled', 'completed']).default('draft'),
     capacity: z.number().int().positive().nullable().optional(),
-    tags: z.array(z.string()).default([]),
   })
   .superRefine((data, ctx) => {
     if (data.endDate && data.eventDate && data.endDate < data.eventDate) {
