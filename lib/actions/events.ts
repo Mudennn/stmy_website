@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getSession, requireAdmin } from '@/lib/auth/session'
 import { eventSchema, eventFilterSchema } from '@/lib/schemas/event'
 import type { Database } from '@/types/database'
@@ -89,6 +90,7 @@ export async function createEvent(input: unknown): Promise<Event> {
 
   const session = await getSession()
   const supabase = await createClient()
+  const adminClient = createAdminClient()
 
   // Upload image if provided
   let imageUrl: string | null = null
@@ -100,7 +102,7 @@ export async function createEvent(input: unknown): Promise<Event> {
     filePath = `events/${fileName}`
 
     const buffer = await data.image.arrayBuffer()
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await adminClient.storage
       .from('event-images')
       .upload(filePath, Buffer.from(buffer), {
         contentType: data.image.type,
@@ -110,7 +112,7 @@ export async function createEvent(input: unknown): Promise<Event> {
       throw new Error(`Failed to upload image: ${uploadError.message}`)
     }
 
-    const { data: publicUrlData } = supabase.storage
+    const { data: publicUrlData } = adminClient.storage
       .from('event-images')
       .getPublicUrl(filePath)
 
@@ -140,7 +142,7 @@ export async function createEvent(input: unknown): Promise<Event> {
   if (error) {
     // Clean up the orphaned storage object if upload succeeded but DB insert failed
     if (filePath) {
-      await supabase.storage.from('event-images').remove([filePath])
+      await adminClient.storage.from('event-images').remove([filePath])
     }
     throw new Error(`Failed to create event: ${error.message}`)
   }
@@ -166,6 +168,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   const data = eventSchema.partial().parse(input)
 
   const supabase = await createClient()
+  const adminClient = createAdminClient()
 
   // Build update object
   const updateData: Partial<Database['public']['Tables']['events']['Update']> = {
@@ -181,7 +184,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
     filePath = `events/${fileName}`
 
     const buffer = await data.image.arrayBuffer()
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await adminClient.storage
       .from('event-images')
       .upload(filePath, Buffer.from(buffer), {
         contentType: data.image.type,
@@ -191,7 +194,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
       throw new Error(`Failed to upload image: ${uploadError.message}`)
     }
 
-    const { data: publicUrlData } = supabase.storage
+    const { data: publicUrlData } = adminClient.storage
       .from('event-images')
       .getPublicUrl(filePath)
 
@@ -220,7 +223,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   if (error) {
     // Clean up the orphaned storage object if upload succeeded but DB update failed
     if (filePath) {
-      await supabase.storage.from('event-images').remove([filePath])
+      await adminClient.storage.from('event-images').remove([filePath])
     }
     throw new Error(`Failed to update event: ${error.message}`)
   }
@@ -241,6 +244,7 @@ export async function deleteEvent(id: string): Promise<void> {
   await requireAdmin()
 
   const supabase = await createClient()
+  const adminClient = createAdminClient()
 
   // Fetch image URL before deleting so we can clean up storage
   const { data: event } = await supabase
@@ -259,7 +263,7 @@ export async function deleteEvent(id: string): Promise<void> {
   if (event?.image_url) {
     const filePath = new URL(event.image_url).pathname.split('/event-images/')[1]
     if (filePath) {
-      await supabase.storage.from('event-images').remove([filePath])
+      await adminClient.storage.from('event-images').remove([filePath])
     }
   }
 }
