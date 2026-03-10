@@ -156,6 +156,19 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
     }
   }
 
+  // Validate cross-field date constraint when only startsAt is provided
+  if (data.startsAt && !data.endsAt) {
+    const supabase = await createClient()
+    const { data: current } = await supabase
+      .from('announcements')
+      .select('ends_at')
+      .eq('id', id)
+      .single()
+    if (current?.ends_at && current.ends_at < data.startsAt) {
+      throw new Error('End time must be after start time')
+    }
+  }
+
   const supabase = await createClient()
 
   // Enforce one-active-at-a-time

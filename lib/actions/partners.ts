@@ -9,6 +9,15 @@ import { z } from 'zod'
 
 type Partner = Database['public']['Tables']['partners']['Row']
 
+const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+const LOGO_MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/svg+xml': 'svg',
+}
+
 /**
  * Fetch all partners with filtering, searching, and pagination.
  * Authenticated users can see all partners.
@@ -108,15 +117,13 @@ export async function createPartner(input: unknown): Promise<Partner> {
   let logoUrl: string | null = null
   let filePath: string | null = null
 
-  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
-
   if (data.logo) {
     // Validate MIME type to prevent client-controlled content-type spoofing
-    if (!ALLOWED_IMAGE_TYPES.includes(data.logo.type)) {
+    if (!ALLOWED_LOGO_TYPES.includes(data.logo.type)) {
       throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF, SVG')
     }
 
-    const ext = data.logo.name.split('.').pop() ?? 'jpg'
+    const ext = LOGO_MIME_TO_EXT[data.logo.type] ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 
     const buffer = await data.logo.arrayBuffer()
@@ -178,15 +185,13 @@ export async function updatePartner(id: string, input: unknown): Promise<Partner
   let newLogoUrl: string | undefined = undefined
   let filePath: string | null = null
 
-  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
-
   if (data.logo) {
     // Validate MIME type to prevent client-controlled content-type spoofing
-    if (!ALLOWED_IMAGE_TYPES.includes(data.logo.type)) {
+    if (!ALLOWED_LOGO_TYPES.includes(data.logo.type)) {
       throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF, SVG')
     }
 
-    const ext = data.logo.name.split('.').pop() ?? 'jpg'
+    const ext = LOGO_MIME_TO_EXT[data.logo.type] ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 
     const buffer = await data.logo.arrayBuffer()

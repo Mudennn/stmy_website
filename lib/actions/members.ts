@@ -9,6 +9,14 @@ import { z } from 'zod'
 
 type Member = Database['public']['Tables']['members']['Row']
 
+const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const AVATAR_MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
+
 /**
  * Fetch all members with filtering, searching, and pagination.
  * Authenticated users can see all members.
@@ -127,15 +135,13 @@ export async function createMember(input: unknown): Promise<Member> {
   let avatarUrl: string | null = null
   let filePath: string | null = null
 
-  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-
   if (data.avatar) {
     // Validate MIME type to prevent client-controlled content-type spoofing
-    if (!ALLOWED_IMAGE_TYPES.includes(data.avatar.type)) {
+    if (!ALLOWED_AVATAR_TYPES.includes(data.avatar.type)) {
       throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
     }
 
-    const ext = data.avatar.name.split('.').pop() ?? 'jpg'
+    const ext = AVATAR_MIME_TO_EXT[data.avatar.type] ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 
     const buffer = await data.avatar.arrayBuffer()
@@ -225,15 +231,13 @@ export async function updateMember(id: string, input: unknown): Promise<Member> 
   let newAvatarUrl: string | undefined = undefined
   let filePath: string | null = null
 
-  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-
   if (data.avatar) {
     // Validate MIME type to prevent client-controlled content-type spoofing
-    if (!ALLOWED_IMAGE_TYPES.includes(data.avatar.type)) {
+    if (!ALLOWED_AVATAR_TYPES.includes(data.avatar.type)) {
       throw new Error('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF')
     }
 
-    const ext = data.avatar.name.split('.').pop() ?? 'jpg'
+    const ext = AVATAR_MIME_TO_EXT[data.avatar.type] ?? 'jpg'
     filePath = `${session.user.id}-${Date.now()}.${ext}`
 
     const buffer = await data.avatar.arrayBuffer()
