@@ -17,8 +17,9 @@ with check (
   and (
     auth.role() = 'service_role'
     or auth.uid() in (
-      select user_id from admin_users
+      select id from admin_users
       where role in ('admin', 'super_admin')
+      and is_active = true
     )
   )
 );
@@ -34,8 +35,9 @@ with check (
   and (
     auth.role() = 'service_role'
     or auth.uid() in (
-      select user_id from admin_users
+      select id from admin_users
       where role in ('admin', 'super_admin')
+      and is_active = true
     )
   )
 );
@@ -47,8 +49,9 @@ using (
   and (
     auth.role() = 'service_role'
     or auth.uid() in (
-      select user_id from admin_users
+      select id from admin_users
       where role in ('admin', 'super_admin')
+      and is_active = true
     )
   )
 );

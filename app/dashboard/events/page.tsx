@@ -14,8 +14,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const session = await getSession()
   const params = await searchParams
 
-  const page = params.page ? parseInt(params.page) : 1
-  const pageSize = params.pageSize ? parseInt(params.pageSize) : 10
+  const rawPage = Number(params.page)
+  const rawPageSize = Number(params.pageSize)
+
+  const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1
+  const pageSize = Number.isInteger(rawPageSize) && rawPageSize > 0 ? rawPageSize : 10
   const search = params.search
 
   const validStatuses = ['draft', 'published', 'cancelled', 'completed'] as const
