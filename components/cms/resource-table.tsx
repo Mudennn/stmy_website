@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Columns3Icon, ChevronDownIcon } from 'lucide-react'
+import { Columns3Icon, ChevronDownIcon, PlusIcon } from 'lucide-react'
 import { TableToolbar } from './table-toolbar'
 import { TablePagination } from './table-pagination'
 import { RoleGate } from './role-gate'
@@ -103,31 +103,31 @@ export function ResourceTable<TData, TValue>({
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
-      <RoleGate
-        currentRole={currentRole}
-        allowedRoles={['super_admin', 'admin']}
-        fallback={
-          showCreateButton ? (
-            <div className="flex gap-2 items-center">
-              <input
-                placeholder={searchPlaceholder}
-                className="h-9 px-3 py-2 flex-1 min-w-48 rounded-md border border-input bg-background text-sm"
-                onChange={(e) => onSearchChange?.(e.target.value)}
-              />
-            </div>
-          ) : null
-        }
-      >
-        <div className="flex gap-2 items-center justify-between flex-wrap">
-          <TableToolbar
-            searchPlaceholder={searchPlaceholder}
-            onSearchChange={onSearchChange}
-            onFilterChange={onFilterChange}
-            onCreateNew={onCreateNew}
-            filters={filters}
-            showCreate={showCreateButton}
-            createLabel={`Create ${resourceName}`}
-          />
+      <div className="flex gap-2 items-center justify-between flex-wrap">
+        <TableToolbar
+          searchPlaceholder={searchPlaceholder}
+          onSearchChange={onSearchChange}
+          onFilterChange={onFilterChange}
+          onCreateNew={onCreateNew}
+          filters={filters}
+          showCreate={false}
+          createLabel={`Create ${resourceName}`}
+        />
+
+        <div className="flex gap-2 items-center">
+          {/* Create Button - Role Gated */}
+          <RoleGate
+            currentRole={currentRole}
+            allowedRoles={['super_admin', 'admin']}
+            fallback={null}
+          >
+            {showCreateButton && (
+              <Button onClick={onCreateNew} size="sm">
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Create {resourceName}
+              </Button>
+            )}
+          </RoleGate>
 
           {/* Column Visibility Dropdown */}
           <DropdownMenu>
@@ -155,7 +155,7 @@ export function ResourceTable<TData, TValue>({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </RoleGate>
+      </div>
 
       {/* Table */}
       <div className="border rounded-lg overflow-hidden">

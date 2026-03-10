@@ -235,15 +235,31 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
 /**
  * Delete an event.
  * Requires admin or super_admin role.
+ * Cleans up associated storage objects.
  */
 export async function deleteEvent(id: string): Promise<void> {
   await requireAdmin()
 
   const supabase = await createClient()
 
+  // Fetch image URL before deleting so we can clean up storage
+  const { data: event } = await supabase
+    .from('events')
+    .select('image_url')
+    .eq('id', id)
+    .single()
+
   const { error } = await supabase.from('events').delete().eq('id', id)
 
   if (error) {
     throw new Error(`Failed to delete event: ${error.message}`)
+  }
+
+  // Clean up orphaned storage object
+  if (event?.image_url) {
+    const filePath = new URL(event.image_url).pathname.split('/event-images/')[1]
+    if (filePath) {
+      await supabase.storage.from('event-images').remove([filePath])
+    }
   }
 }

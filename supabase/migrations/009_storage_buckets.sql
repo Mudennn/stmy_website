@@ -9,14 +9,17 @@ drop policy if exists "Allow public read access to event images" on storage.obje
 drop policy if exists "Allow users to update their own event images" on storage.objects;
 drop policy if exists "Allow users to delete their own event images" on storage.objects;
 
--- Set bucket policies - permissive for admin operations
+-- Set bucket policies - restrict write operations to admins only
 create policy "Allow admins to upload event images"
 on storage.objects for insert
 with check (
   bucket_id = 'event-images'
   and (
-    auth.role() = 'authenticated'
-    or auth.role() = 'service_role'
+    auth.role() = 'service_role'
+    or auth.uid() in (
+      select user_id from admin_users
+      where role in ('admin', 'super_admin')
+    )
   )
 );
 
@@ -29,8 +32,11 @@ on storage.objects for update
 with check (
   bucket_id = 'event-images'
   and (
-    auth.role() = 'authenticated'
-    or auth.role() = 'service_role'
+    auth.role() = 'service_role'
+    or auth.uid() in (
+      select user_id from admin_users
+      where role in ('admin', 'super_admin')
+    )
   )
 );
 
@@ -39,7 +45,10 @@ on storage.objects for delete
 using (
   bucket_id = 'event-images'
   and (
-    auth.role() = 'authenticated'
-    or auth.role() = 'service_role'
+    auth.role() = 'service_role'
+    or auth.uid() in (
+      select user_id from admin_users
+      where role in ('admin', 'super_admin')
+    )
   )
 );
