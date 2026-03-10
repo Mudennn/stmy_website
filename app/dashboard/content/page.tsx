@@ -6,6 +6,20 @@ interface ContentPageProps {
   searchParams: Promise<{ page?: string; pageSize?: string; filter?: string; section?: string }>
 }
 
+const VALID_SECTIONS = [
+  'hero',
+  'mission',
+  'stats',
+  'events_section',
+  'members_spotlight',
+  'partners_ecosystem',
+  'community_wall',
+  'faq',
+  'join_cta',
+  'footer',
+] as const
+type Section = (typeof VALID_SECTIONS)[number]
+
 /**
  * CMS content list page with server-side rendering.
  */
@@ -24,7 +38,11 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
     ? (params.filter as 'true' | 'false')
     : undefined
 
-  const { contents, totalCount } = await getContents({ page, pageSize, isPublished })
+  const section = VALID_SECTIONS.includes(params.section as Section)
+    ? (params.section as Section)
+    : undefined
+
+  const { contents, totalCount } = await getContents({ page, pageSize, isPublished, section })
 
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6 px-4 lg:px-6">

@@ -97,11 +97,6 @@ export async function createAnnouncement(input: unknown): Promise<Announcement> 
 
   const supabase = await createClient()
 
-  // Enforce one-active-at-a-time
-  if (data.isActive) {
-    await supabase.from('announcements').update({ is_active: false }).eq('is_active', true)
-  }
-
   const { data: announcement, error } = await supabase
     .from('announcements')
     .insert({
@@ -115,6 +110,10 @@ export async function createAnnouncement(input: unknown): Promise<Announcement> 
     .single()
 
   if (error) {
+    // Handle unique constraint violation on is_active
+    if (error.code === '23505' && error.message.includes('announcements_one_active')) {
+      throw new Error('An announcement is already active. Deactivate it first or set is_active to false.')
+    }
     throw new Error(`Failed to create announcement: ${error.message}`)
   }
 
@@ -128,7 +127,7 @@ export async function createAnnouncement(input: unknown): Promise<Announcement> 
 /**
  * Update an existing announcement.
  * Editors can only update; admins can update and delete.
- * If is_active is toggled on, deactivates all other announcements first.
+ * If is_active is toggled on and another is already active, the database constraint will reject it.
  */
 export async function updateAnnouncement(id: string, input: unknown): Promise<Announcement> {
   const session = await getSession()
@@ -171,15 +170,6 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
 
   const supabase = await createClient()
 
-  // Enforce one-active-at-a-time
-  if (data.isActive === true) {
-    await supabase
-      .from('announcements')
-      .update({ is_active: false })
-      .eq('is_active', true)
-      .neq('id', id)
-  }
-
   const updateData: Partial<Database['public']['Tables']['announcements']['Update']> = {
     updated_at: new Date().toISOString(),
   }
@@ -197,6 +187,10 @@ export async function updateAnnouncement(id: string, input: unknown): Promise<An
     .single()
 
   if (error) {
+    // Handle unique constraint violation on is_active
+    if (error.code === '23505' && error.message.includes('announcements_one_active')) {
+      throw new Error('An announcement is already active. Deactivate it first or set is_active to false.')
+    }
     throw new Error(`Failed to update announcement: ${error.message}`)
   }
 
