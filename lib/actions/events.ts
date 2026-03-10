@@ -68,9 +68,19 @@ export async function getEvents(
 
 /**
  * Fetch a single event by ID.
+ * Authenticated users can fetch any event.
+ * Unauthenticated users can only fetch published events.
  */
 export async function getEvent(id: string): Promise<Event> {
   const supabase = await createClient()
+
+  // Check authentication
+  let session: Awaited<ReturnType<typeof getSession>> | null = null
+  try {
+    session = await getSession()
+  } catch {
+    // Unauthenticated user
+  }
 
   const { data, error } = await supabase
     .from('events')
@@ -83,6 +93,11 @@ export async function getEvent(id: string): Promise<Event> {
   }
 
   if (!data) {
+    throw new Error('Event not found')
+  }
+
+  // Restrict unauthenticated callers to published events only
+  if (!session && data.status !== 'published') {
     throw new Error('Event not found')
   }
 
