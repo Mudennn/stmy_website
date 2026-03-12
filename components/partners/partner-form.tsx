@@ -70,7 +70,6 @@ export function PartnerForm({ partner, isEditMode = false }: PartnerFormProps) {
         toast.success('Partner created successfully')
       }
       router.push('/dashboard/partners')
-      router.refresh()
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {}

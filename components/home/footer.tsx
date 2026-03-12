@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 
@@ -13,7 +12,7 @@ const Socials = [
 
 export function Footer() {
     return (
-        <footer className="bg-background pt-24 px-4 lg:px-17.5 text-white/80 pb-6">
+        <footer className="bg-hero pt-24 px-4 lg:px-17.5 text-white/80 pb-6">
             <div className="max-w-7xl mx-auto flex flex-col min-h-[50vh] justify-between gap-24">
                 
                 {/* Top Section */}
@@ -42,7 +41,7 @@ export function Footer() {
                         <div className="flex flex-col gap-3">
                             {Socials.map((social) => (
                                 <a key={social.name} href={social.href} className="w-fit flex items-center group font-medium">
-                                    <div className="border border-stroke bg-white/5 rounded-l-xl px-5 py-2.5 min-w-[140px] lg:min-w-[120px] group-hover:bg-white group-hover:text-black transition-colors">
+                                    <div className="border border-stroke bg-white/5 rounded-l-xl px-5 py-2.5 min-w-35 lg:min-w-30 group-hover:bg-white group-hover:text-black transition-colors">
                                         {social.name}
                                     </div>
                                     <div className="border border-l-0 border-stroke bg-white/5 rounded-r-xl p-2.5 group-hover:bg-white group-hover:text-black transition-colors flex items-center justify-center">

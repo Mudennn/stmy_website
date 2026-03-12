@@ -66,7 +66,6 @@ export function AnnouncementForm({ announcement, isEditMode = false }: Announcem
         toast.success('Announcement created successfully')
       }
       router.push('/dashboard/announcements')
-      router.refresh()
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {}

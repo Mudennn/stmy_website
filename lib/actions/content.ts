@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { contentSchema, contentFilterSchema } from '@/lib/schemas/content'
 import type { Database } from '@/types/database'
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 
 type CmsContent = Database['public']['Tables']['cms_content']['Row']
 
@@ -147,6 +148,9 @@ export async function updateContent(id: string, input: unknown): Promise<CmsCont
   if (!content) {
     throw new Error('Content not found')
   }
+
+  // Revalidate homepage if any section was updated
+  revalidatePath('/')
 
   return content
 }

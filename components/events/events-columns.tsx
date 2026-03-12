@@ -156,11 +156,6 @@ export function createEventColumns(currentRole: UserRole): ColumnDef<Event>[] {
     },
   },
   {
-    accessorKey: 'capacity',
-    header: 'Capacity',
-    cell: ({ row }) => row.original.capacity || '-',
-  },
-  {
     id: 'actions',
     header: 'Actions',
     cell: ({ row }) => <EventActionCell event={row.original} currentRole={currentRole} />,

@@ -4,20 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useSpring, useInView, useMotionValue } from "motion/react";
 import Image from "next/image";
 
-// interface StatItemProps {
-//     value: number;
-//     label: string;
-//     description: string;
-//     suffix?: string;
-// }
+interface StatsProps {
+    counterValues?: number[];
+}
 
 function Counter({ value, suffix = "+" }: { value: number; suffix?: string }) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
     const motionValue = useMotionValue(0);
     const springValue = useSpring(motionValue, {
-        stiffness: 100,
-        damping: 30,
+        stiffness: 300,
+        damping: 60,
     });
     const [displayValue, setDisplayValue] = useState(0);
 
@@ -76,12 +73,13 @@ const AvatarRow = ({
                         {avatars.map((avatar) => (
                             <div
                                 key={avatar.id}
-                                className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden shrink-0"
+                                className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden shrink-0 relative"
                             >
-                                <img
+                                <Image
                                     src={avatar.src}
                                     alt="avatar"
-                                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                    fill
+                                    className="object-cover transition-transform duration-300 hover:scale-110"
                                 />
                             </div>
                         ))}
@@ -92,15 +90,19 @@ const AvatarRow = ({
     );
 };
 
-export function Stats() {
-    const bountyBricks = [
-        { title: "Website Design & Build Challenge" },
-        { title: "Build a Telegram Intro Gatekeeper Bot" },
-        { title: "Twitter Thread or Article" },
-    ];
+export function Stats({ counterValues }: StatsProps) {
+    const counterValues0 = counterValues?.[0] ?? 3000;
+    const counterValues1 = counterValues?.[1] ?? 40;
+    const counterValues2 = counterValues?.[2] ?? 50;
+    const counterValues3 = counterValues?.[3] ?? 40;
 
+    const bountyBricks = [
+        { title: 'Website Design & Build Challenge' },
+        { title: 'Build a Telegram Intro Gatekeeper Bot' },
+        { title: 'Twitter Thread or Article' },
+    ];
     return (
-        <section className="relative pt-20 lg:pt-36 bg-background overflow-hidden">
+        <section className="relative pt-20 lg:pt-36 bg-hero overflow-hidden">
             <div className="mx-auto px-4 lg:px-17.5">
                 {/* Header */}
                 <div className="max-w-3xl mb-16 lg:mb-24">
@@ -110,7 +112,7 @@ export function Stats() {
                         viewport={{ once: true }}
                     >
                         <span className="text-primary text-sm uppercase tracking-widest block mb-16">
-              /// 02 - STATS
+              {"/// 02 - STATS"}
                         </span>
                         <h2 className="text-4xl font-bold text-white mb-4">
                             Impact of Superteam Malaysia
@@ -131,20 +133,8 @@ export function Stats() {
                         initial={{ opacity: 0, x: -20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="group relative bg-background border border-stroke overflow-hidden flex flex-col justify-center px-6 lg:px-14 py-20 lg:py-22 gap-12"
+                        className="group relative bg-hero border border-stroke overflow-hidden flex flex-col justify-center px-6 lg:px-14 py-20 lg:py-22 gap-12"
                     >
-                        {/* Background Radial Glow (Graph Area) */}
-                        {/* <div
-                            className="absolute pointer-events-none z-0"
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                right: '-10%',
-                                bottom: '-20%',
-                                background: 'radial-gradient(circle at 80% 80%, #683FEA 19%, rgba(10, 10, 10, 0) 100%)',
-                                opacity: 0.15,
-                            }}
-                        /> */}
 
                         {/* Focused Beam Gradient */}
                         <div
@@ -160,54 +150,33 @@ export function Stats() {
                         <div className="absolute bottom-0 right-0">
                             <Image  src="/images/graph.png" alt="STMY" width={800} height={800}/>
                         </div>
-                        {/* <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
-                            <svg
-                                width="100%"
-                                height="100%"
-                                viewBox="0 0 400 600"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="absolute inset-0"
-                            >
-                                <path
-                                    d="M0 600 C80 570 120 610 160 570 C200 530 230 580 270 540 C310 500 330 570 360 510 C380 480 390 420 400 360"
-                                    stroke="#683FEA"
-                                    strokeWidth="1.5"
-                                />
-                                <g transform="translate(400, 360)">
-                                    <circle r="12" fill="#683FEA" fillOpacity="0.4" />
-                                    <circle r="6" fill="#683FEA" />
-                                    <circle r="3" fill="white" />
-                                </g>
-                            </svg>
-                        </div> */}
 
                         <div className="relative z-10">
-                            <Counter value={3000} />
+                            <Counter value={counterValues0} />
                             <h3 className="text-2xl font-medium text-white tracking-tight mt-6 mb-2">
                                 Community members
                             </h3>
-                            <p className="text-sm text-muted max-w-xs">
+                            <p className="text-sm text-muted-text max-w-xs">
                                 Active builders, students, and creators across Malaysia.
                             </p>
                         </div>
 
                         <div className="relative z-10">
-                            <Counter value={40} />
+                            <Counter value={counterValues1} />
                             <h3 className="text-2xl font-medium text-white tracking-tight mt-6 mb-2">
                                 Events hosted
                             </h3>
-                            <p className="text-sm text-muted max-w-xs">
+                            <p className="text-sm text-muted-text max-w-xs">
                                 Meetups, community calls, watch parties, and build sessions.
                             </p>
                         </div>
 
                         <div className="relative z-10">
-                            <Counter value={50} />
+                            <Counter value={counterValues2} />
                             <h3 className="text-2xl font-medium text-white tracking-tight mt-6 mb-2">
                                 Projects built
                             </h3>
-                            <p className="text-sm text-muted max-w-xs">
+                            <p className="text-sm text-muted-text max-w-xs">
                                 Hackathon teams and community projects shipped on Solana.
                             </p>
                         </div>
@@ -220,7 +189,7 @@ export function Stats() {
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="bg-background border border-stroke p-6 md:p-14 relative flex flex-col justify-end h-96 md:flex-1 md:h-auto"
+                            className="bg-hero border border-stroke p-6 md:p-14 relative flex flex-col justify-end h-96 md:flex-1 md:h-auto"
                         >
                             {/* Gradient Circle Background */}
                             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -271,11 +240,11 @@ export function Stats() {
                             </div>
 
                             <div className="mt-auto">
-                                <Counter value={40} />
+                                <Counter value={counterValues3} />
                                 <h3 className="text-2xl font-medium text-white tracking-tight mt-6 mb-2">
                                     Bounties completed
                                 </h3>
-                                <p className="text-base text-muted">
+                                <p className="text-base text-muted-text">
                                     Paid submissions through Superteam Earn
                                 </p>
                             </div>
@@ -296,7 +265,7 @@ export function Stats() {
                                 className="absolute inset-0 pointer-events-none z-10 w-full h-62.5"
                                 style={{
                                     background:
-                                        "radial-gradient(50% 50% at center, transparent 0%, var(--background) 85%)",
+                                        "radial-gradient(50% 50% at center, transparent 0%, var(--hero) 85%)",
                                 }}
                             />
                             <div className="relative">
@@ -309,7 +278,7 @@ export function Stats() {
                                 <h3 className="text-2xl font-medium text-white tracking-tight mb-2">
                                     Nationwide community reach
                                 </h3>
-                                <p className="text-sm text-muted">Across Malaysia</p>
+                                <p className="text-sm text-muted-text">Across Malaysia</p>
                             </div>
                         </motion.div>
                     </div>

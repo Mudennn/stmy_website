@@ -5,7 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.1363 0.0364 259.2);
+  --background: oklch(1 0 0);
+  --hero: oklch(0.1363 0.0364 259.2);
   --foreground: oklch(0.1450 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.1450 0 0);
@@ -15,7 +16,8 @@
   --primary-foreground: oklch(0.9850 0 0);
   --secondary: oklch(0.9700 0 0);
   --secondary-foreground: oklch(0.2050 0 0);
-  --muted: oklch(0.7155 0 0);
+  --muted: oklch(0.9700 0 0);
+  --muted-text: oklch(0.7155 0 0);
   --muted-foreground: oklch(0.5560 0 0);
   --accent: oklch(0.9700 0 0);
   --accent-foreground: oklch(0.2050 0 0);
@@ -62,6 +64,7 @@
 
 .dark {
   --background: oklch(0.1363 0.0364 259.2);
+  --hero: oklch(0.1363 0.0364 259.2);
   --foreground: oklch(0.9850 0 0);
   --card: oklch(0.2050 0 0);
   --card-foreground: oklch(0.9850 0 0);
@@ -71,7 +74,8 @@
   --primary-foreground: oklch(0.2050 0 0);
   --secondary: oklch(0.2690 0 0);
   --secondary-foreground: oklch(0.9850 0 0);
-  --muted: oklch(0.7155 0 0);
+  --muted: oklch(0.9700 0 0);
+  --muted-text: oklch(0.7155 0 0);
   --muted-foreground: oklch(0.7080 0 0);
   --accent: oklch(0.3710 0 0);
   --accent-foreground: oklch(0.9850 0 0);
@@ -116,6 +120,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-hero: var(--hero);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -126,6 +131,7 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-muted-text: var(--muted-text);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
@@ -177,4 +183,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.react-tweet-theme {
+  --tweet-container-margin: 0 !important;
 }

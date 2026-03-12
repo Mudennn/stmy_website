@@ -2,48 +2,20 @@
 
 import { useRef } from 'react';
 import Image from 'next/image';
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useScroll, useTransform, MotionValue } from 'motion/react';
 
-const highlights = [
-    {
-        title: "Builder Support & Mentorship",
-        description: "1:1 guidance, code reviews, and squad matching to ship your first Solana project.",
-        image: "/images/hero_image.png",
-        id: "01",
-    },
-    {
-        title: "Events & Hackathons",
-        description: "KL meetups, Startup Village, and regional hackathons with global judges.",
-        image: "/images/hero_image.png",
-        id: "02",
-    },
-    {
-        title: "Grants & Funding Access",
-        description: "Curated Solana Foundation grants and ecosystem funding for Malaysian projects.",
-        image: "/images/hero_image.png",
-        id: "03",
-    },
-    {
-        title: "Jobs, Bounties & Opportunities",
-        description: "Superteam Earn Malaysia: bounties paying global crypto rates to local talent.",
-        image: "/images/hero_image.png",
-        id: "04",
-    },
-    {
-        title: "Education & Workshops",
-        description: "From Rust basics to DeFi DLMM, weekly sessions building real skills.",
-        image: "/images/hero_image.png",
-        id: "05",
-    },
-    {
-        title: "Ecosystem Connections",
-        description: "Direct intros to Phantom, Solana Labs, and top APAC founders.",
-        image: "/images/hero_image.png",
-        id: "06",
-    }
-];
+interface HighlightItem {
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+}
 
-export function Highlights() {
+interface HighlightsProps {
+    items?: HighlightItem[];
+}
+
+export function Highlights({ items }: HighlightsProps) {
     const container = useRef(null);
     const { scrollYProgress } = useScroll({
         target: container,
@@ -65,7 +37,7 @@ export function Highlights() {
                         >
                             <div className='mb-6 lg:mb-0'>
                                 <span className="text-primary text-sm tracking-widest uppercase ">
-                                    /// 01 - HIGHLIGHT
+                                    {"/// 01 - HIGHLIGHT"}
                                 </span>
                             </div>
 
@@ -83,21 +55,23 @@ export function Highlights() {
                     </div>
 
                     {/* Right Column: Stacking Cards Container */}
-                    <div className="lg:w-3/5 relative flex justify-center items-end w-full">
+                    {items && items.length > 0 && (
+                      <div className="lg:w-3/5 relative flex justify-center items-end w-full">
                         <div className="relative w-full max-w-full lg:max-w-160 h-80 lg:h-113.75">
-                            {highlights.map((card, index) => {
+                            {items.map((card, index) => {
                                 return (
                                     <StackingCardItem
                                         key={card.id}
                                         index={index}
-                                        total={highlights.length}
+                                        total={items.length}
                                         progress={scrollYProgress}
                                         {...card}
                                     />
                                 );
                             })}
                         </div>
-                    </div>
+                      </div>
+                    )}
 
                 </div>
             </div>
@@ -105,7 +79,16 @@ export function Highlights() {
     );
 }
 
-function StackingCardItem({ title, description, image, index, total, progress }: any) {
+interface StackingCardItemProps {
+    title: string;
+    description: string;
+    image: string;
+    index: number;
+    total: number;
+    progress: MotionValue<number>;
+}
+
+function StackingCardItem({ title, description, image, index, total, progress }: StackingCardItemProps) {
     // Timing variables:
     // Each card enters and dominates its fraction of the scroll
     const step = 1 / total;
@@ -151,11 +134,11 @@ function StackingCardItem({ title, description, image, index, total, progress }:
             }}
             className="absolute inset-0"
         >
-            <div className='bg-background h-full'>
+            <div className='bg-hero h-full'>
                 <div className="w-full h-full bg-linear-to-t from-[#683FEA]/20 to-[#000000] border border-stroke p-4 lg:p-10 flex flex-col overflow-hidden">
 
                     {/* Card Header (Image) - Rounded inner box */}
-                    <div className="relative flex-1 w-full rounded-xl overflow-hidden bg-background">
+                    <div className="relative flex-1 w-full rounded-xl overflow-hidden bg-hero">
                         <Image
                             src={image}
                             alt={title}
@@ -170,7 +153,7 @@ function StackingCardItem({ title, description, image, index, total, progress }:
                         <h3 className="text-2xl font-bold text-white tracking-tight pb-2">
                             {title}
                         </h3>
-                        <p className="text-muted text-sm lg:text-lg">
+                        <p className="text-muted-text text-sm lg:text-lg">
                             {description}
                         </p>
                     </div>

@@ -84,7 +84,6 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
         toast.success('Member created successfully')
       }
       router.push('/dashboard/members')
-      router.refresh()
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {}

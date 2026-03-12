@@ -1,59 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { MapPin, ArrowUpRight } from 'lucide-react';
 
-const events = [
-    {
-        id: 1,
-        title: "Superteam Malaysia Onboarding Call March ft Festival Celebration",
-        date: "Thursday 5 March | 15:00",
-        location: "Amazon Web Services (AWS-KUL15) Malaysia",
-        image: "/images/hero_image.png", // Placeholder
-        isUpcoming: true
-    },
-    {
-        id: 2,
-        title: "Superteam MY Ecosystem Sync ft. KAST & Keewy",
-        date: "Tuesday 3 March | 20:00",
-        location: "Network School Library",
-        image: "/images/hero_image.png", // Placeholder
-        isUpcoming: true
-    },
-    {
-        id: 3,
-        title: "Superteam MY Ecosystem Sync ft. KAST & Keewy",
-        date: "Tuesday 3 March | 20:00",
-        location: "Network School Library",
-        image: "/images/hero_image.png", // Placeholder
-        isUpcoming: true
-    },
-    {
-        id: 4,
-        title: "Superteam MY Ecosystem Sync ft. KAST & Keewy",
-        date: "Tuesday 3 March | 20:00",
-        location: "Network School Library",
-        image: "/images/hero_image.png", // Placeholder
-        isUpcoming: true
-    },
-    {
-        id: 3,
-        title: "Superteam MY Ecosystem Sync",
-        date: "Tuesday 24 Feb | 20:00",
-        location: "Online",
-        image: "/images/hero_image.png", // Placeholder
-        isUpcoming: false
-    }
-];
+interface Event {
+    id: string;
+    title: string;
+    event_date: string;
+    location: string | null;
+    image_url: string | null;
+    luma_url: string | null;
+}
 
-export function Events() {
+interface EventsProps {
+    upcomingEvents: Event[];
+    pastEvents: Event[];
+}
+
+export function Events({ upcomingEvents, pastEvents }: EventsProps) {
     const [activeTab, setActiveTab] = useState<'PAST' | 'UPCOMING'>('UPCOMING');
 
-    const filteredEvents = events.filter(e =>
-        activeTab === 'UPCOMING' ? e.isUpcoming : !e.isUpcoming
-    );
+    const filteredEvents = activeTab === 'UPCOMING' ? upcomingEvents : pastEvents;
 
     return (
         <section className="relative flex items-center overflow-hidden mt-24 lg:mt-36 mx-4 lg:mx-17.5">
@@ -79,7 +48,7 @@ export function Events() {
                             viewport={{ once: true }}
                         >
                             <span className="text-primary text-sm uppercase tracking-widest block">
-                /// 03 - EVENTS
+                {"/// 03 - EVENTS"}
                             </span>
                             <h2 className="text-4xl font-bold tracking-tighter text-primary leading-none mb-4 mt-16">
                                 IRL & Online Events
@@ -103,8 +72,8 @@ export function Events() {
                             {['UPCOMING', 'PAST'].map((tab) => (
                                 <button
                                     key={tab}
-                                    onClick={() => setActiveTab(tab as any)}
-                                    className={`text-base uppercase font-medium  tracking-widest transition-colors relative ${activeTab === tab ? 'text-white font-bold' : 'text-muted hover:text-white'
+                                    onClick={() => setActiveTab(tab as 'PAST' | 'UPCOMING')}
+                                    className={`text-base uppercase font-medium  tracking-widest transition-colors relative ${activeTab === tab ? 'text-primary font-bold' : 'text-white hover:text-primary'
                                         }`}
                                 >
                                     {tab}
@@ -122,7 +91,8 @@ export function Events() {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 20 }}
                                         transition={{ delay: i * 0.1 }}
-                                        className="group bg-background border border-stroke rounded-2xl h-full overflow-hidden"
+                                        className={`group bg-hero border border-stroke rounded-2xl h-full overflow-hidden ${event.luma_url ? 'cursor-pointer' : ''}`}
+                                        onClick={() => event.luma_url && window.open(event.luma_url, '_blank')}
                                     >
                                         <div className="w-full group py-6 px-4 flex flex-col md:flex-row gap-6 items-center justify-between h-full" style={{
                                             background:
@@ -133,22 +103,32 @@ export function Events() {
                                                 {event.title}
                                             </h3>
 
-                                            <p className="text-base font-medium text-muted">{event.date}</p>
-                                            <div className="flex items-center gap-2 text-muted text-base">
-                                                <MapPin size={24} />
-                                                {event.location}
+                                            <p className="text-base font-medium text-muted-text">
+                                                {new Date(event.event_date).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}
+                                            </p>
+                                            {event.location && (
+                                                <div className="flex items-center gap-2 text-muted-text text-base">
+                                                    <MapPin size={24} />
+                                                    {event.location}
+                                                </div>
+                                            )}
+
+                                        </div>
+
+                                        {event.image_url && (
+                                            <div className="relative w-full md:w-32 aspect-square overflow-hidden">
+                                                <Image
+                                                    src={event.image_url}
+                                                    alt={event.title}
+                                                    fill
+                                                    className="object-cover"
+                                                />
                                             </div>
-
-                                        </div>
-
-                                        <div className="relative w-full md:w-32 aspect-square overflow-hidden">
-                                            <Image
-                                                src={event.image}
-                                                alt={event.title}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        </div>
+                                        )}
                                         </div>
                                     </motion.div>
                                 ))}

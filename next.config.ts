@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: supabaseHostname,
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
     ],
   },
 
@@ -79,7 +83,7 @@ const nextConfig: NextConfig = {
                 "style-src 'self' 'unsafe-inline'", // Allow styles from self + inline (needed for styled-components/tailwind)
                 "img-src 'self' data: https:", // Allow images from self, data URLs, and https
                 "font-src 'self' data:", // Allow fonts from self and data URLs
-                `connect-src 'self' ${supabaseUrl} ${supabaseWsUrl}`.trim(), // Allow Supabase API and WebSocket (handles http/https → ws/wss)
+                `connect-src 'self' ${supabaseUrl} ${supabaseWsUrl} https://react-tweet.vercel.app`.trim(), // Allow Supabase API, WebSocket, and react-tweet API
                 "frame-ancestors 'none'", // Prevent framing (supersedes X-Frame-Options)
                 "base-uri 'self'", // Restrict base tag
                 "form-action 'self'", // Restrict form submissions to same origin
