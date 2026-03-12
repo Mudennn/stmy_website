@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 
@@ -39,10 +40,12 @@ export function MemberSpotlight({ members }: MemberSpotlightProps) {
                             up, shipped work, and earned their place in the community.
                         </p>
 
-                        <button className="flex items-center gap-2 bg-white/90 hover:bg-white text-black px-8 py-4 rounded-xl text-sm font-bold transition-all group">
-                            See All Members
-                            <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        </button>
+                        <Link href="/members">
+                            <button className="flex items-center gap-2 bg-white/90 hover:bg-white text-black px-8 py-4 rounded-xl text-sm font-bold transition-all group">
+                                See All Members
+                                <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            </button>
+                        </Link>
                     </motion.div>
                
 

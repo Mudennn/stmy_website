@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react";
 import {
   motion,
@@ -7,7 +9,7 @@ import {
 } from "motion/react";
 import { Menu, X } from "lucide-react";
 
-const navLinks = [{ name: "Member Directory", href: "#" }];
+const navLinks = [{ name: "Member Directory", href: "/members" }];
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
