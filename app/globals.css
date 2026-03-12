@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
+  --background: oklch(0.1363 0.0364 259.2);
   --foreground: oklch(0.1450 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.1450 0 0);
@@ -15,7 +15,7 @@
   --primary-foreground: oklch(0.9850 0 0);
   --secondary: oklch(0.9700 0 0);
   --secondary-foreground: oklch(0.2050 0 0);
-  --muted: oklch(0.9700 0 0);
+  --muted: oklch(0.7155 0 0);
   --muted-foreground: oklch(0.5560 0 0);
   --accent: oklch(0.9700 0 0);
   --accent-foreground: oklch(0.2050 0 0);
@@ -57,10 +57,11 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+  --stroke: oklch(0.4102 0.0134 297.24);
 }
 
 .dark {
-  --background: oklch(0.1450 0 0);
+  --background: oklch(0.1363 0.0364 259.2);
   --foreground: oklch(0.9850 0 0);
   --card: oklch(0.2050 0 0);
   --card-foreground: oklch(0.9850 0 0);
@@ -70,7 +71,7 @@
   --primary-foreground: oklch(0.2050 0 0);
   --secondary: oklch(0.2690 0 0);
   --secondary-foreground: oklch(0.9850 0 0);
-  --muted: oklch(0.2690 0 0);
+  --muted: oklch(0.7155 0 0);
   --muted-foreground: oklch(0.7080 0 0);
   --accent: oklch(0.3710 0 0);
   --accent-foreground: oklch(0.9850 0 0);
@@ -110,6 +111,7 @@
   --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --stroke: oklch(0.4102 0.0134 297.24);
 }
 
 @theme inline {
@@ -146,6 +148,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --color-stroke: var(--stroke);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
@@ -169,6 +173,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
