@@ -29,7 +29,14 @@ export async function uploadImageAction(formData: FormData): Promise<{ url: stri
       return { url: null, error: 'File too large. Maximum 5MB allowed' }
     }
 
-    const folder = (formData.get('folder') as string) || 'uploads'
+    // Sanitize folder parameter to prevent path traversal
+    const rawFolder = (formData.get('folder') as string) || 'uploads'
+    const folder = rawFolder
+      .replace(/\.\./g, '')          // remove traversal sequences
+      .replace(/[^a-zA-Z0-9/_-]/g, '') // allow only safe path chars
+      .replace(/^\/+|\/+$/g, '')     // strip leading/trailing slashes
+      || 'uploads'
+
     const url = await uploadImage(file, folder)
 
     if (!url) {

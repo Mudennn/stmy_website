@@ -16,6 +16,31 @@ import {
 import { TrendingUpIcon } from "lucide-react"
 import { getDashboardStats } from "@/lib/actions/dashboard"
 
+/**
+ * Skeleton loader for section cards - shown while stats load
+ */
+export function SectionCardsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      {[1, 2, 3, 4].map((i) => (
+        <Card key={i} className="@container/card">
+          <CardHeader>
+            <CardDescription className="h-4 w-20 bg-muted rounded animate-pulse" />
+            <CardTitle className="text-2xl font-semibold mt-2 h-8 w-32 bg-muted rounded animate-pulse @[250px]/card:text-3xl" />
+            <CardAction>
+              <div className="h-6 w-16 bg-muted rounded animate-pulse" />
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="h-4 w-40 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
 export async function SectionCards() {
   const stats = await getDashboardStats()
 
