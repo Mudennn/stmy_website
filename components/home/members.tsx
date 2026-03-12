@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 
 interface Member {
-    id: number | string;
+    id: string;
     full_name: string;
     role_title: string | null;
     avatar_url: string | null;

@@ -130,7 +130,7 @@ export async function updateContent(id: string, input: unknown): Promise<CmsCont
   if (data.subtitle !== undefined) updateData.subtitle = data.subtitle || null
   if (data.body !== undefined) updateData.body = data.body || null
   if (metadataParsed !== undefined) updateData.metadata = metadataParsed as Database['public']['Tables']['cms_content']['Update']['metadata']
-  if (data.sortOrder !== undefined) updateData.sort_order = data.sortOrder ?? null
+  if (data.sortOrder !== undefined && data.sortOrder !== null) updateData.sort_order = data.sortOrder
   if (data.isPublished !== undefined) updateData.is_published = data.isPublished
 
   const { data: content, error } = await supabase

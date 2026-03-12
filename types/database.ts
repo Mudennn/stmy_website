@@ -155,33 +155,51 @@ export type Database = {
       }
       members: {
         Row: {
+          achievements: Json | null
+          avatar_url: string | null
           bio: string | null
+          company: string | null
           created_at: string
+          created_by: string | null
+          full_name: string
           id: string
-          image_url: string | null
-          is_highlighted: boolean
-          name: string
-          role: string | null
+          is_active: boolean
+          is_featured: boolean
+          role_title: string | null
+          skill_tags: string[]
+          twitter_url: string | null
           updated_at: string
         }
         Insert: {
+          achievements?: Json | null
+          avatar_url?: string | null
           bio?: string | null
+          company?: string | null
           created_at?: string
+          created_by?: string | null
+          full_name: string
           id?: string
-          image_url?: string | null
-          is_highlighted?: boolean
-          name: string
-          role?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          role_title?: string | null
+          skill_tags?: string[]
+          twitter_url?: string | null
           updated_at?: string
         }
         Update: {
+          achievements?: Json | null
+          avatar_url?: string | null
           bio?: string | null
+          company?: string | null
           created_at?: string
+          created_by?: string | null
+          full_name?: string
           id?: string
-          image_url?: string | null
-          is_highlighted?: boolean
-          name?: string
-          role?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          role_title?: string | null
+          skill_tags?: string[]
+          twitter_url?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -220,8 +238,29 @@ export type Database = {
         Relationships: []
       }
     }
-    Views: {}
-    Functions: {}
+    Views: Record<string, never>
+    Functions: {
+      record_failed_attempt: {
+        Args: {
+          p_identifier: string
+          p_action: string
+        }
+        Returns: null
+      }
+      cleanup_rate_limits: {
+        Args: Record<string, never>
+        Returns: null
+      }
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_action: string
+          p_max_attempts?: number
+          p_window_seconds?: number
+        }
+        Returns: boolean
+      }
+    }
     Enums: {
       content_section:
         | "hero"
@@ -237,7 +276,7 @@ export type Database = {
       event_status: "draft" | "published" | "cancelled" | "completed"
       user_role: "super_admin" | "admin" | "editor"
     }
-    CompositeTypes: {}
+    CompositeTypes: Record<string, never>
   }
 }
 

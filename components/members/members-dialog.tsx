@@ -112,7 +112,7 @@ export function MemberDialog({ member, onClose }: MemberDialogProps) {
                   <section>
                     <h3 className="text-sm uppercase tracking-widest text-primary font-bold mb-4">Biography</h3>
                     <p className="text-muted-text leading-relaxed text-lg italic">
-                      "{member.bio}"
+                      &quot;{member.bio}&quot;
                     </p>
                   </section>
                 )}

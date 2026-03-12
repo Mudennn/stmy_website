@@ -11,10 +11,13 @@ export async function uploadImage(file: File, folder: string = 'uploads'): Promi
   try {
     const supabase = await createClient()
 
-    // Generate unique filename
+    // Generate unique filename with path injection protection
     const timestamp = Date.now()
     const random = Math.random().toString(36).substring(7)
-    const filename = `${folder}/${timestamp}-${random}-${file.name}`
+    const safeBaseName = file.name
+      .split(/[\\/]/).pop()!         // strip any directory separators
+      .replace(/[^a-zA-Z0-9._-]/g, '_') // allow only safe chars
+    const filename = `${folder}/${timestamp}-${random}-${safeBaseName}`
 
     const { error: uploadError } = await supabase.storage
       .from(BUCKET_NAME)
