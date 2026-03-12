@@ -48,42 +48,44 @@ export async function getHomepageContent(): Promise<Map<string, CmsContent>> {
 
 /**
  * Fetch published events, split into upcoming and past.
- * Ordered by event_date DESC (upcoming first).
+ * Two separate queries guarantee up to `limit` events in each category.
  */
 export async function getHomepageEvents(limit = 5): Promise<{
   upcoming: Event[]
   past: Event[]
 }> {
   const supabase = await createClient()
+  const now = new Date().toISOString()
 
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('status', 'published')
-    .order('event_date', { ascending: false })
-    .limit(limit * 2) // Fetch more to split into upcoming/past
+  const [upcomingResult, pastResult] = await Promise.all([
+    // Upcoming: events >= now, ordered ascending (nearest first)
+    supabase
+      .from('events')
+      .select('*')
+      .eq('status', 'published')
+      .gte('event_date', now)
+      .order('event_date', { ascending: true })
+      .limit(limit),
+    // Past: events < now, ordered descending (most recent first)
+    supabase
+      .from('events')
+      .select('*')
+      .eq('status', 'published')
+      .lt('event_date', now)
+      .order('event_date', { ascending: false })
+      .limit(limit),
+  ])
 
-  if (error) {
-    console.error('[Homepage Data] Failed to fetch events:', error.message)
-    return { upcoming: [], past: [] }
+  if (upcomingResult.error) {
+    console.error('[Homepage Data] Failed to fetch upcoming events:', upcomingResult.error.message)
+  }
+  if (pastResult.error) {
+    console.error('[Homepage Data] Failed to fetch past events:', pastResult.error.message)
   }
 
-  const now = new Date()
-  const upcoming: Event[] = []
-  const past: Event[] = []
-
-  data?.forEach((event) => {
-    const eventDate = new Date(event.event_date)
-    if (eventDate >= now) {
-      upcoming.push(event)
-    } else {
-      past.push(event)
-    }
-  })
-
   return {
-    upcoming: upcoming.slice(0, limit),
-    past: past.slice(0, limit),
+    upcoming: upcomingResult.data || [],
+    past: pastResult.data || [],
   }
 }
 
@@ -134,11 +136,14 @@ export async function getHomepagePartners(): Promise<Partner[]> {
  */
 export async function getHomepageAnnouncement(): Promise<Announcement | null> {
   const supabase = await createClient()
+  const now = new Date().toISOString()
 
   const { data, error } = await supabase
     .from('announcements')
     .select('*')
     .eq('is_active', true)
+    .or(`starts_at.is.null,starts_at.lte.${now}`)
+    .or(`ends_at.is.null,ends_at.gte.${now}`)
     .order('created_at', { ascending: false })
     .limit(1)
 

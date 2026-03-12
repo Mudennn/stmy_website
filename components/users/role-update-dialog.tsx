@@ -31,10 +31,17 @@ export function RoleUpdateDialog({
   onOpenChange,
 }: RoleUpdateDialogProps) {
   const router = useRouter()
-  const [selectedRole, setSelectedRole] = React.useState<'super_admin' | 'admin' | 'editor'>(
-    user.role as 'super_admin' | 'admin' | 'editor'
+  const [selectedRole, setSelectedRole] = React.useState<'admin' | 'editor'>(
+    (user.role === 'admin' || user.role === 'editor' ? user.role : 'admin') as 'admin' | 'editor'
   )
   const [isLoading, setIsLoading] = React.useState(false)
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setSelectedRole((user.role === 'admin' || user.role === 'editor' ? user.role : 'admin') as 'admin' | 'editor')
+    }
+    onOpenChange(newOpen)
+  }
 
   const handleUpdate = async () => {
     if (selectedRole === user.role) {
@@ -62,7 +69,7 @@ export function RoleUpdateDialog({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg bg-background p-6 shadow-lg mx-4">
@@ -76,7 +83,7 @@ export function RoleUpdateDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">New Role</label>
-              <Select value={selectedRole} onValueChange={(value: 'super_admin' | 'admin' | 'editor') => setSelectedRole(value)}>
+              <Select value={selectedRole} onValueChange={(value: 'admin' | 'editor') => setSelectedRole(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

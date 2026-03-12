@@ -158,11 +158,8 @@ export async function createEvent(input: unknown): Promise<Event> {
   }
 
   // Convert from Malaysia time (UTC+8) to UTC for storage
-  // Parse naive datetime and subtract 8 hours to get UTC equivalent
-  const [datePart, timePart] = data.eventDate.split('T')
-  const [year, month, day] = datePart.split('-').map(Number)
-  const [hours, minutes] = timePart.split(':').map(Number)
-  const utcEventDate = new Date(Date.UTC(year, month - 1, day, hours - 8, minutes)).toISOString()
+  // Append MYT offset and let JS Date handle the conversion
+  const utcEventDate = new Date(`${data.eventDate}+08:00`).toISOString()
 
   const { data: event, error } = await supabase
     .from('events')
@@ -253,10 +250,7 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   if (data.title) updateData.title = data.title
   if (data.eventDate) {
     // Convert from Malaysia time (UTC+8) to UTC for storage
-    const [datePart, timePart] = data.eventDate.split('T')
-    const [year, month, day] = datePart.split('-').map(Number)
-    const [hours, minutes] = timePart.split(':').map(Number)
-    updateData.event_date = new Date(Date.UTC(year, month - 1, day, hours - 8, minutes)).toISOString()
+    updateData.event_date = new Date(`${data.eventDate}+08:00`).toISOString()
   }
   if (data.location !== undefined) updateData.location = data.location || null
   if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl || null

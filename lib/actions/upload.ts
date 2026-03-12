@@ -1,12 +1,16 @@
 'use server'
 
+import { requireAdmin } from '@/lib/auth/session'
 import { uploadImage } from '@/lib/storage/image-upload'
 
 /**
  * Server action to upload image from FormData
  * Used by client components to upload files to Supabase storage
+ * Only authenticated admins can upload images
  */
 export async function uploadImageAction(formData: FormData): Promise<{ url: string | null; error: string | null }> {
+  await requireAdmin()
+
   try {
     const file = formData.get('file') as File
 

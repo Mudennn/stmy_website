@@ -46,21 +46,41 @@ export function UsersTable({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = React.useState(searchParams.get('search') || '')
+  const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  const debouncedPush = React.useCallback(
+    (value: string) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        const params = new URLSearchParams(searchParams)
+        if (value.trim()) {
+          params.set('search', value.trim())
+          params.set('page', '1')
+        } else {
+          params.delete('search')
+          params.delete('page')
+        }
+        router.push(`?${params.toString()}`)
+      }, 300)
+    },
+    [searchParams, router]
+  )
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-
-    const params = new URLSearchParams(searchParams)
-    if (value.trim()) {
-      params.set('search', value.trim())
-      params.set('page', '1')
-    } else {
-      params.delete('search')
-      params.delete('page')
-    }
-
-    router.push(`?${params.toString()}`)
+    debouncedPush(value)
   }
+
+  React.useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
 
   const columns = React.useMemo(() => createUserColumns(currentRole), [currentRole])
 

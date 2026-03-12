@@ -26,7 +26,10 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   const rawPageSize = Number(params.pageSize)
 
   const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1
-  const pageSize = Number.isInteger(rawPageSize) && rawPageSize > 0 ? rawPageSize : 10
+  const pageSize =
+    Number.isInteger(rawPageSize) && rawPageSize > 0 && rawPageSize <= 100
+      ? rawPageSize
+      : 10
 
   // Trim and normalize search
   const search = params.search?.trim() || undefined

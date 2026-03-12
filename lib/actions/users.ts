@@ -8,10 +8,9 @@
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getSession, requireAdmin, requireSuperAdmin } from '@/lib/auth/session'
+import { requireAdmin, requireSuperAdmin } from '@/lib/auth/session'
 import { userFilterSchema, userRoleUpdateSchema } from '@/lib/schemas/user'
 import { inviteSchema } from '@/lib/schemas/auth'
-import { randomBytes } from 'crypto'
 import type { Database } from '@/types/database'
 
 export type ActionResult<T = void> =
@@ -39,7 +38,9 @@ export async function getUsers(
 
   // Search by email or full_name
   if (search) {
-    query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`)
+    // Escape PostgREST special chars to prevent filter injection
+    const safeSearch = search.replace(/[(),]/g, '')
+    query = query.or(`email.ilike.%${safeSearch}%,full_name.ilike.%${safeSearch}%`)
   }
 
   // Sort by email, descending
@@ -63,8 +64,10 @@ export async function getUsers(
 
 /**
  * Gets a single admin user by ID.
+ * Only admins and super_admins can view user details.
  */
 export async function getUser(userId: string): Promise<AdminUserRow> {
+  await requireAdmin()
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -85,27 +88,22 @@ export async function getUser(userId: string): Promise<AdminUserRow> {
  * Only Super Admin can invite other admins.
  * Admins can only invite editors.
  *
- * 1. Verifies current user is admin/super_admin
- * 2. Validates invite data
- * 3. Creates auth user via service role
+ * Sends invitation email with magic link that lets user set their own password.
+ *
+ * 1. Validates invite data
+ * 2. Verifies role permissions (super_admin can invite any role, admin can only invite editors)
+ * 3. Sends invitation email via service role (user will receive magic link)
  * 4. Creates admin_users record with specified role
  * 5. Returns success or error
  */
 export async function inviteUser(
   formData: FormData
 ): Promise<ActionResult<{ email: string; role: string }>> {
-  const { adminUser: currentUser } = await getSession()
+  const session = await requireAdmin()
+  const currentUser = session.adminUser
 
   try {
-    // 1. Verify current user is admin/super_admin
-    if (currentUser.role !== 'super_admin' && currentUser.role !== 'admin') {
-      return {
-        success: false,
-        error: 'Insufficient permissions. Only admins can invite users.',
-      }
-    }
-
-    // 2. Validate invite data
+    // 1. Validate invite data
     const parsed = inviteSchema.safeParse({
       email: formData.get('email'),
       full_name: formData.get('full_name'),
@@ -125,22 +123,18 @@ export async function inviteUser(
       }
     }
 
-    // 3. Create auth user via service role client
+    // 3. Send invitation email via service role client
     const adminClient = createAdminClient()
 
-    // Generate a cryptographically secure temporary password
-    const tempPassword = randomBytes(12).toString('base64')
-
-    const { data: authData, error: createError } = await adminClient.auth.admin.createUser({
-      email: parsed.data.email,
-      password: tempPassword,
-      email_confirm: true,
-    })
+    // Send invitation email with magic link for password reset
+    const { data: authData, error: createError } = await adminClient.auth.admin.inviteUserByEmail(
+      parsed.data.email
+    )
 
     if (createError || !authData.user) {
       return {
         success: false,
-        error: 'Failed to create user account. The email may already be registered.',
+        error: 'Failed to send invitation. The email may already be registered or is invalid.',
       }
     }
 
@@ -216,11 +210,11 @@ export async function updateUserRole(
       return { success: false, error: firstError }
     }
 
-    // 2. Prevent self-demotion
-    if (parsed.data.userId === session.user.id && parsed.data.role !== 'super_admin') {
+    // 2. Prevent self-role-change
+    if (parsed.data.userId === session.user.id) {
       return {
         success: false,
-        error: 'You cannot demote yourself. Ask another super admin to change your role.',
+        error: 'You cannot change your own role. Ask another super admin to change your role.',
       }
     }
 
@@ -316,6 +310,16 @@ export async function deactivateUser(userId: string): Promise<ActionResult<Admin
       }
     }
 
+    // 5. Revoke all active sessions for the user
+    // scope: 'others' invalidates all existing sessions without affecting the acting admin's session
+    const { error: signOutError } = await adminClient.auth.admin.signOut(userId, 'others')
+
+    if (signOutError) {
+      console.error('Failed to revoke user sessions during deactivation:', signOutError)
+      // Log but don't fail - user is already deactivated from DB perspective
+      // requireAdmin() will block them on next request even if sessions aren't revoked
+    }
+
     return {
       success: true,
       data: user,
@@ -330,14 +334,39 @@ export async function deactivateUser(userId: string): Promise<ActionResult<Admin
 }
 
 /**
- * Reactivates a user (Super Admin only).
+ * Reactivates a user (Super Admin + Admin, with role restrictions).
+ * Super Admin can reactivate anyone.
+ * Admin can only reactivate editors.
  */
 export async function reactivateUser(userId: string): Promise<ActionResult<AdminUserRow>> {
-  await requireSuperAdmin()
+  const session = await requireAdmin()
 
   try {
+    // Check permissions and fetch target user
     const adminClient = createAdminClient()
 
+    const { data: targetUser, error: fetchError } = await adminClient
+      .from('admin_users')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (fetchError || !targetUser) {
+      return {
+        success: false,
+        error: 'User not found',
+      }
+    }
+
+    // Role validation: Admins can only reactivate editors, super_admins can reactivate anyone
+    if (session.adminUser.role === 'admin' && targetUser.role !== 'editor') {
+      return {
+        success: false,
+        error: 'You can only reactivate editors. Contact a super admin to reactivate admins.',
+      }
+    }
+
+    // Reactivate user
     const { data: user, error } = await adminClient
       .from('admin_users')
       .update({

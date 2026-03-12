@@ -6,7 +6,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireAdmin } from '@/lib/auth/session'
 
 export interface DashboardStats {
   totalEvents: number
@@ -27,16 +27,16 @@ export interface RecentEvent {
  * Only authenticated admins can access this.
  */
 export async function getDashboardStats(): Promise<DashboardStats> {
-  await getSession() // Auth check
+  await requireAdmin()
 
   const supabase = await createClient()
 
   // Fetch counts in parallel
   const [
-    { count: eventCount },
-    { count: memberCount },
-    { count: partnerCount },
-    { count: userCount },
+    { count: eventCount, error: eventsError },
+    { count: memberCount, error: membersError },
+    { count: partnerCount, error: partnersError },
+    { count: userCount, error: usersError },
   ] = await Promise.all([
     supabase
       .from('events')
@@ -53,6 +53,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .eq('is_active', true),
   ])
 
+  // Log any errors for debugging
+  if (eventsError) console.error('Failed to fetch event count:', eventsError)
+  if (membersError) console.error('Failed to fetch member count:', membersError)
+  if (partnersError) console.error('Failed to fetch partner count:', partnersError)
+  if (usersError) console.error('Failed to fetch active user count:', usersError)
+
   return {
     totalEvents: eventCount || 0,
     totalMembers: memberCount || 0,
@@ -64,9 +70,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 /**
  * Gets recent events for the dashboard.
  * Shows up to 5 most recent events.
+ * Only authenticated admins can access this.
  */
 export async function getRecentEvents(limit = 5): Promise<RecentEvent[]> {
-  await getSession() // Auth check
+  await requireAdmin()
 
   const supabase = await createClient()
 

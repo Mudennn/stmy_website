@@ -5,7 +5,7 @@ import { z } from 'zod'
  */
 export const eventSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255),
-  eventDate: z.string().min(1, 'Event date is required'),
+  eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Event date must be in format YYYY-MM-DDTHH:MM'),
   location: z.string().max(255).nullable().optional(),
   lumaUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
   image: z
@@ -26,7 +26,7 @@ export type EventFormData = z.infer<typeof eventSchema>
 export const eventUpdateSchema = z
   .object({
     title: z.string().min(1, 'Title is required').max(255),
-    eventDate: z.string().min(1, 'Event date is required'),
+    eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Event date must be in format YYYY-MM-DDTHH:MM'),
     location: z.string().max(255).nullable().optional(),
     lumaUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
     image: z

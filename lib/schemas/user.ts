@@ -19,11 +19,11 @@ export type UserInviteFormData = z.infer<typeof userInviteSchema>
 
 /**
  * Schema for updating a user's role (Super Admin only).
- * Super Admin can change any user's role to admin, editor, or super_admin.
+ * Super Admin can change users' roles to admin or editor (not super_admin).
  */
 export const userRoleUpdateSchema = z.object({
   userId: z.string().uuid('Invalid user ID'),
-  role: z.enum(['super_admin', 'admin', 'editor']),
+  role: z.enum(['admin', 'editor']),
 })
 
 export type UserRoleUpdateFormData = z.infer<typeof userRoleUpdateSchema>
