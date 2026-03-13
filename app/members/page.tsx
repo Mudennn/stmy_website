@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Members | Superteam Malaysia",
+  title: "Members",
   description: "Meet the developers, designers, and creators powering the Malaysian Solana ecosystem.",
 };
 

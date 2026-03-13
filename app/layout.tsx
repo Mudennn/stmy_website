@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Archivo } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { SITE_NAME, SITE_DESCRIPTION, SEO_KEYWORDS, SITE_URL } from '@/lib/seo/config'
 import './globals.css'
 
 const geistSans = Geist({
@@ -20,8 +21,21 @@ const archivo = Archivo({
 })
 
 export const metadata: Metadata = {
-  title: 'Superteam Malaysia CMS',
-  description: 'Admin dashboard for managing Superteam Malaysia content',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: SEO_KEYWORDS,
+  openGraph: {
+    siteName: SITE_NAME,
+    type: 'website',
+    locale: 'en_MY',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 }
 
 export default function RootLayout({

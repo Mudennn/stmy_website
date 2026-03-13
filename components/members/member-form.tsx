@@ -54,6 +54,14 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
         }
   )
 
+  const [achievementsList, setAchievementsList] = useState<Array<{ title: string; year?: number }>>(
+    isEditMode && member?.achievements && typeof member.achievements === 'object' && !Array.isArray(member.achievements)
+      ? [member.achievements as { title: string; year?: number }]
+      : isEditMode && member?.achievements && Array.isArray(member.achievements)
+      ? (member.achievements as Array<{ title: string; year?: number }>)
+      : []
+  )
+
   const [avatarFile, setAvatarFile] = useState<File | undefined>(undefined)
   const [currentAvatarUrl] = useState<string | null>(
     isEditMode && member?.avatar_url ? member.avatar_url : null
@@ -67,13 +75,39 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
     }
   }
 
+  const addAchievement = () => {
+    setAchievementsList((prev) => [...prev, { title: '', year: new Date().getFullYear() }])
+  }
+
+  const removeAchievement = (index: number) => {
+    setAchievementsList((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const updateAchievement = (index: number, field: 'title' | 'year', value: string | number) => {
+    setAchievementsList((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, [field]: field === 'year' ? (value ? parseInt(String(value)) : undefined) : value }
+          : item
+      )
+    )
+    if (errors['achievements']) {
+      setErrors((prev) => ({ ...prev, achievements: '' }))
+    }
+  }
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setErrors({})
 
     try {
-      const submitData = { ...formData, avatar: avatarFile }
+      const achievementsJson =
+        achievementsList.length > 0
+          ? JSON.stringify(achievementsList.length === 1 ? achievementsList[0] : achievementsList)
+          : ''
+
+      const submitData = { ...formData, avatar: avatarFile, achievements: achievementsJson }
       memberSchema.parse(submitData)
 
       if (isEditMode && member) {
@@ -230,15 +264,41 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
 
       {/* Achievements */}
       <Field>
-        <Label htmlFor="achievements">Achievements</Label>
-        <textarea
-          id="achievements"
-          placeholder='e.g., {"title":"Award Name","year":2024}'
-          className="h-24 w-full px-3 py-2 rounded-md border border-input bg-background text-xs font-mono"
-          value={formData.achievements || ''}
-          onChange={(e) => handleFieldChange('achievements', e.target.value)}
-        />
-        <p className="text-xs text-muted-foreground">Optional JSON format for achievements/awards</p>
+        <Label>Achievements</Label>
+        <div className="space-y-3">
+          {achievementsList.map((achievement, index) => (
+            <div key={index} className="flex gap-2">
+              <Input
+                placeholder="Achievement title"
+                value={achievement.title}
+                onChange={(e) => updateAchievement(index, 'title', e.target.value)}
+                className="flex-1"
+              />
+              <Input
+                placeholder="Year"
+                type="number"
+                value={achievement.year || ''}
+                onChange={(e) => updateAchievement(index, 'year', e.target.value)}
+                className="w-24"
+              />
+              <button
+                type="button"
+                onClick={() => removeAchievement(index)}
+                className="px-3 py-2 rounded-md border border-destructive text-destructive hover:bg-destructive/10"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addAchievement}
+            className="text-sm text-primary hover:underline"
+          >
+            + Add Achievement
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">Optional - add awards or recognitions</p>
         {errors['achievements'] && <p className="text-sm text-destructive">{errors['achievements']}</p>}
       </Field>
 
