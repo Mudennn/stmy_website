@@ -20,6 +20,7 @@ export function Hero({ ctaPrimary, ctaSecondary }: HeroProps) {
                     autoPlay
                     loop
                     muted
+                    playsInline
                     className="w-full h-full object-cover"
                 />
             </div>

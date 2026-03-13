@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function SignupPage() {
     return () => {
       isMounted = false;
     };
-  }, [supabase.auth, router]);
+  }, [router]);
 
   // Show loading state while processing auth
   return (
