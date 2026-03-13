@@ -42,7 +42,7 @@ export default function SignupPage() {
     return () => {
       isMounted = false;
     };
-  }, [router]);
+  }, [router, supabase]);
 
   // Show loading state while processing auth
   return (

@@ -116,13 +116,13 @@ export function MemberDialog({ member, onClose }: MemberDialogProps) {
                 </section>
 
                 {/* Achievements */}
-                {member.achievements && (
+                {member.achievements && Array.isArray(member.achievements) && member.achievements.length > 0 && (
                   <section>
                     <h3 className="text-sm uppercase tracking-widest text-primary font-bold mb-4 flex items-center gap-2">
                       <Trophy size={16} /> Achievements
                     </h3>
                     <div className="grid grid-cols-1 gap-4">
-                      {Array.isArray(member.achievements) && member.achievements.map((achievement, i) => {
+                      {member.achievements.map((achievement, i) => {
                         const item = achievement as Record<string, unknown>;
                         const title = item?.title ? String(item.title) : null;
                         const year = item?.year ? Number(item.year) : null;
