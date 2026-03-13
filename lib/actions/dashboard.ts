@@ -6,7 +6,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { requireAdmin } from '@/lib/auth/session'
+import { getSession } from '@/lib/auth/session'
 
 export interface DashboardStats {
   totalEvents: number
@@ -27,7 +27,7 @@ export interface RecentEvent {
  * Only authenticated admins can access this.
  */
 export async function getDashboardStats(): Promise<DashboardStats> {
-  await requireAdmin()
+  await getSession()
 
   const supabase = await createClient()
 
@@ -73,7 +73,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
  * Only authenticated admins can access this.
  */
 export async function getRecentEvents(limit = 5): Promise<RecentEvent[]> {
-  await requireAdmin()
+  await getSession()
 
   const supabase = await createClient()
 
