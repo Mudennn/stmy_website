@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 const Socials = [
-  { name: "MEMBER DIRECTORY", href: "/member" },
+  { name: "MEMBER DIRECTORY", href: "/members" },
   { name: "TWITTER", href: "https://x.com/SuperteamMY" },
   { name: "TELEGRAM", href: "https://t.me/SuperteamMY#" },
   { name: "LUMA", href: "https://luma.com/mysuperteam" },

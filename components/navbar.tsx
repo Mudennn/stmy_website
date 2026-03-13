@@ -11,6 +11,10 @@ import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { name: "Member Directory", href: "/members" },
+];
+
+const menuLinks = [
+  { name: "Member Directory", href: "/members" },
   { name: "Earn", href: "https://superteam.fun/earn/s/superteammalaysia" },
 ];
 
@@ -29,7 +33,7 @@ export default function Navbar() {
   });
 
   return (
-    <div className="min-h-[200vh] bg-hero text-white font-sans selection:bg-hero selection:text-foreground">
+    <>
       {/* Navbar Container */}
       <div className="fixed top-6 lg:top-8 right-4 lg:right-17.5 flex justify-center z-50 pointer-events-none">
         <motion.nav
@@ -135,7 +139,7 @@ export default function Navbar() {
 
             {/* Links */}
             <div className="flex-1 flex flex-col justify-center gap-0 lg:gap-6">
-              {navLinks.map((link, i) => (
+              {menuLinks.map((link, i) => (
                 <motion.a
                   key={link.name}
                   href={link.href}
@@ -173,6 +177,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

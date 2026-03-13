@@ -122,28 +122,22 @@ export function MemberDialog({ member, onClose }: MemberDialogProps) {
                       <Trophy size={16} /> Achievements
                     </h3>
                     <div className="grid grid-cols-1 gap-4">
-                      {(() => {
-                        const achievements = Array.isArray(member.achievements)
-                          ? member.achievements
-                          : [member.achievements];
+                      {Array.isArray(member.achievements) && member.achievements.map((achievement, i) => {
+                        const item = achievement as Record<string, unknown>;
+                        const title = item?.title ? String(item.title) : null;
+                        const year = item?.year ? Number(item.year) : null;
 
-                        return achievements.map((item, i) => {
-                          const achievement = typeof item === 'object' && item !== null ? (item as Record<string, unknown>) : null;
-                          const title = achievement?.title ? String(achievement.title) : (typeof item === 'string' ? item : null);
-                          const year = achievement?.year ? Number(achievement.year) : null;
-
-                          return (
-                            <div key={i} className="bg-white/5 p-4">
-                              {title && (
-                                <>
-                                  <p className="text-white font-medium">{title}</p>
-                                  {year && <p className="text-muted-text text-xs mt-1">{year}</p>}
-                                </>
-                              )}
-                            </div>
-                          );
-                        });
-                      })()}
+                        return (
+                          <div key={i} className="bg-white/5 p-4">
+                            {title && (
+                              <>
+                                <p className="text-white font-medium">{title}</p>
+                                {year && <p className="text-muted-text text-xs mt-1">{year}</p>}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </section>
                 )}

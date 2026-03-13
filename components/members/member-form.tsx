@@ -55,10 +55,10 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
   )
 
   const [achievementsList, setAchievementsList] = useState<Array<{ title: string; year?: number }>>(
-    isEditMode && member?.achievements && typeof member.achievements === 'object' && !Array.isArray(member.achievements)
-      ? [member.achievements as { title: string; year?: number }]
-      : isEditMode && member?.achievements && Array.isArray(member.achievements)
-      ? (member.achievements as Array<{ title: string; year?: number }>)
+    isEditMode && member?.achievements
+      ? Array.isArray(member.achievements)
+        ? (member.achievements as Array<{ title: string; year?: number }>)
+        : [member.achievements as { title: string; year?: number }]
       : []
   )
 
@@ -104,7 +104,7 @@ export function MemberForm({ member, isEditMode = false }: MemberFormProps) {
     try {
       const achievementsJson =
         achievementsList.length > 0
-          ? JSON.stringify(achievementsList.length === 1 ? achievementsList[0] : achievementsList)
+          ? JSON.stringify(achievementsList)
           : ''
 
       const submitData = { ...formData, avatar: avatarFile, achievements: achievementsJson }
