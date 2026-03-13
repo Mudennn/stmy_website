@@ -100,6 +100,7 @@ export async function getHomepageMembers(limit = 9): Promise<Member[]> {
     .select('*')
     .eq('is_active', true)
     .eq('is_featured', true)
+    .order('full_name', { ascending: true })
     .limit(limit)
 
   if (error) {
@@ -121,6 +122,7 @@ export async function getHomepagePartners(): Promise<Partner[]> {
     .from('partners')
     .select('*')
     .eq('is_active', true)
+    .order('sort_order', { ascending: true })
 
   if (error) {
     console.error('[Homepage Data] Failed to fetch partners:', error)
