@@ -10,21 +10,19 @@ interface HeroProps {
 }
 
 export function Hero({ ctaPrimary, ctaSecondary }: HeroProps) {
-  const backgroundImage = '/images/hero_image.png'
+  const backgroundVideo = '/images/hero_video.mp4'
     return (
         <section className="relative h-187.5 md:h-screen w-full overflow-hidden text-white">
-            {/* Background Image with Overlay */}
+            {/* Background Video */}
             <div className="absolute inset-0 z-0">
-                <Image
-                    src={backgroundImage}
-                    alt="Kuala Lumpur Skyline"
-                    fill
-                    priority
-                    className="object-cover object-bottom"
+                <video
+                    src={backgroundVideo}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
                 />
-                {/* Gradients for readability and depth */}
-                {/* <div className="absolute inset-0 bg-gradient-to-t from-[#050510] via-transparent to-transparent opacity-90" />
-                <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-transparent opacity-50" /> */}
             </div>
 
             {/* Top Navbar Area */}
@@ -89,8 +87,8 @@ export function Hero({ ctaPrimary, ctaSecondary }: HeroProps) {
                         </p>
                         {(ctaPrimary || ctaSecondary) && (
                           <div className="flex flex-wrap gap-4">
-                            {ctaPrimary && <Button variant="default" onClick={() => window.location.href = ctaPrimary.href}>{ctaPrimary.label}</Button>}
-                            {ctaSecondary && <Button variant="outline" onClick={() => window.location.href = ctaSecondary.href}>{ctaSecondary.label}</Button>}
+                            {ctaPrimary && <Button variant="primary" size="hero" onClick={() => window.location.href = ctaPrimary.href}>{ctaPrimary.label}</Button>}
+                            {ctaSecondary && <Button variant="tertiary" size="hero" onClick={() => window.location.href = ctaSecondary.href}>{ctaSecondary.label}</Button>}
                           </div>
                         )}
                     </div>

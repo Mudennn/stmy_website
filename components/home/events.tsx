@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { MapPin, ArrowUpRight } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface Event {
     id: string;
@@ -29,12 +30,12 @@ export function Events({ upcomingEvents, pastEvents }: EventsProps) {
             {/* Background with Blur */}
             <div className="absolute inset-0 z-0">
                 <Image
-                    src="/images/hero_image.png"
-                    alt="Events Background"
+                    src="/images/events.png"
+                    alt="Superteam Malaysia Events"
                     fill
                     className="object-cover"
                 />
-                <div className="absolute inset-0 bg-background/40 backdrop-blur-[10px]" />
+                <div className="absolute inset-0 bg-background/40 backdrop-blur-[0px]" />
             </div>
 
             <div className="mx-auto relative z-10 w-full px-4 lg:px-17.5">
@@ -58,10 +59,10 @@ export function Events({ upcomingEvents, pastEvents }: EventsProps) {
                                 technical buildstations and hackathons, see where Malaysian builders are gathering next.
                             </p>
 
-                            <button className="flex items-center gap-2 bg-white/90 hover:bg-white text-black px-8 py-4 rounded-xl text-sm font-bold transition-all group">
+                            <Button variant="tertiary" size="hero" onClick={() => window.open('https://luma.com/mysuperteam/events', '_blank')}>
                                 View All Events
                                 <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                            </button>
+                            </Button>
                         </motion.div>
                     </div>
 

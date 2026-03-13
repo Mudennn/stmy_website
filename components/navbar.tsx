@@ -9,7 +9,14 @@ import {
 } from "motion/react";
 import { Menu, X } from "lucide-react";
 
-const navLinks = [{ name: "Member Directory", href: "/members" }];
+const navLinks = [
+  { name: "Member Directory", href: "/members" },
+];
+
+const menuLinks = [
+  { name: "Member Directory", href: "/members" },
+  { name: "Earn", href: "https://superteam.fun/earn/s/superteammalaysia" },
+];
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -26,7 +33,7 @@ export default function Navbar() {
   });
 
   return (
-    <div className="min-h-[200vh] bg-hero text-white font-sans selection:bg-hero selection:text-foreground">
+    <>
       {/* Navbar Container */}
       <div className="fixed top-6 lg:top-8 right-4 lg:right-17.5 flex justify-center z-50 pointer-events-none">
         <motion.nav
@@ -132,17 +139,15 @@ export default function Navbar() {
 
             {/* Links */}
             <div className="flex-1 flex flex-col justify-center gap-0 lg:gap-6">
-              {[
-                ...navLinks,
-                { name: "Earn", href: "https://superteam.fun/earn/s/superteammalaysia" },
-              ].map((link, i) => (
+              {menuLinks.map((link, i) => (
                 <motion.a
                   key={link.name}
                   href={link.href}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 + i * 0.05 }}
-                  className="text-4xl lg:text-6xl font-medium hover:translate-x-4"
+                  whileHover={{ x: 16 }}
+                  className="text-4xl lg:text-6xl font-medium"
                 >
                   {link.name}
                 </motion.a>
@@ -172,6 +177,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

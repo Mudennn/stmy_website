@@ -21,7 +21,7 @@ export function MemberCard({ member, onClick }: MemberCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       whileHover={{ y: -5 }}
-      className="group relative flex flex-col bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors cursor-pointer"
+      className="group relative flex flex-col bg-hero border border-stroke p-6 hover:bg-white/10 transition-colors cursor-pointer"
       onClick={onClick}
     >
       {/* Beveled Avatar Container */}

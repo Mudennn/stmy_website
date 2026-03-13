@@ -94,10 +94,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 
 # Server-side only (NEVER expose these to client)
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
-SUPABASE_ADMIN_PASSWORD=your_admin_password_here
-
-# Optional: for image uploads
-NEXT_PUBLIC_BUCKET_NAME=cms-images
 ```
 
 ### Where to find these keys:
@@ -140,20 +136,41 @@ pnpm lint
 
 ### Creating the First Admin User
 
-1. **Direct Database Insert** (Recommended for local dev):
+When setting up a fresh database, you need to create an admin account in two places:
 
+#### Step 1: Create a Supabase Auth User
+1. Open [Supabase Dashboard](https://supabase.com/dashboard)
+2. Go to your project → Authentication → Users
+3. Click "Add user" and enter an email and password
+
+#### Step 2: Add Email to admin_users Table
+Once the auth user is created, add their email to the `admin_users` table:
+
+1. Go to SQL Editor in Supabase
+2. Run this SQL command:
    ```sql
-   -- In Supabase SQL Editor, run:
    INSERT INTO admin_users (user_email, created_at)
    VALUES ('your-email@example.com', now())
    ON CONFLICT (user_email) DO NOTHING;
    ```
+   Replace `your-email@example.com` with the email you created in Step 1.
 
-2. **Via Dashboard** (After first admin exists):
-   - Go to `/dashboard/users/invite`
-   - Enter admin email
-   - Send invitation
-   - New admin receives login credentials
+### Verification & Fallback
+
+If login is not working after both steps:
+
+1. **Verify the user exists in Supabase Auth:**
+   - Go to Authentication → Users in Supabase Dashboard
+   - Confirm your email is listed
+
+2. **Verify the email is in admin_users table:**
+   - Go to SQL Editor → Query "admin_users" table
+   - Run: `SELECT * FROM admin_users WHERE user_email = 'your-email@example.com';`
+   - Should return one row
+
+3. **Create both manually if needed:**
+   - Create the Supabase Auth user (Step 1 above)
+   - Add to admin_users table (Step 2 above)
 
 ### Admin Table Structure
 
@@ -175,40 +192,6 @@ CREATE TABLE admin_users (
 - Row-Level Security (RLS) policies protect sensitive operations
 - Service role key (server-only) checks this table during login
 - One email per row = one admin account
-
-### How to Add New Admins
-
-**Option 1: SQL Insert (Direct)**
-```sql
-INSERT INTO admin_users (user_email)
-VALUES ('neadmin@example.com')
-ON CONFLICT (user_email) DO NOTHING;
-```
-
-**Option 2: Dashboard Invite**
-1. Login to `/dashboard` as existing admin
-2. Go to `/dashboard/users/invite`
-3. Enter new admin's email
-4. They'll receive login credentials via email
-
-### Authentication Flow
-
-1. User visits `/login`
-2. Enters email + password
-3. POST to `/api/auth/login` (Route Handler)
-4. Route Handler:
-   - Validates credentials with Supabase Auth
-   - Checks if email exists in `admin_users` table (using service role key)
-   - Sets secure cookie
-   - Returns `401` if not admin (generic error for security)
-5. User redirected to `/dashboard` if successful
-6. Middleware refreshes session on every request
-
-**Security Notes:**
-- Service role key only used server-side (Route Handlers, Server Actions)
-- Client sees generic "Invalid credentials" for all failures (prevents email enumeration)
-- Rate limiting on login (5 attempts per IP)
-- Passwords hashed by Supabase Auth
 
 ## 📚 Project Structure
 
@@ -463,4 +446,4 @@ For issues or questions:
 ---
 
 **Last Updated:** March 2026
-**Current Phase:** Phase 3 (Homepage CMS Integration)
+

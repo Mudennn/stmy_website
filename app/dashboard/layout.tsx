@@ -4,12 +4,24 @@
  * Provides SidebarProvider and header layout for dashboard pages.
  */
 
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth/session'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Dashboard',
+    template: '%s | Dashboard',
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default async function DashboardLayout({
   children,

@@ -15,21 +15,21 @@ interface MemberDirectoryProps {
   initialMembers: Member[];
 }
 
-const SKILL_FILTERS = [
-  'Core Team',
-  'Rust',
-  'Frontend',
-  'Design',
-  'Content',
-  'Growth',
-  'Product',
-  'Community'
-];
-
 export function MemberDirectory({ initialMembers }: MemberDirectoryProps) {
   const [search, setSearch] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+
+  // Derive unique skills from members
+  const availableSkills = useMemo(() => {
+    const skills = new Set<string>();
+    initialMembers.forEach(member => {
+      member.skill_tags?.forEach(tag => {
+        skills.add(tag);
+      });
+    });
+    return Array.from(skills).sort();
+  }, [initialMembers]);
 
   const filteredMembers = useMemo(() => {
     return initialMembers.filter((member) => {
@@ -76,7 +76,7 @@ export function MemberDirectory({ initialMembers }: MemberDirectoryProps) {
           <div className="lg:col-span-3 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-text" size={20} />
             <Input
-              placeholder="Search by name, role, or company..."
+              placeholder="Search by name"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-white/5 border-white/10 pl-12 h-14 rounded-2xl text-white placeholder:text-white/20 focus-visible:ring-primary focus-visible:border-primary"
@@ -89,7 +89,7 @@ export function MemberDirectory({ initialMembers }: MemberDirectoryProps) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {SKILL_FILTERS.map((skill) => {
+          {availableSkills.map((skill) => {
             const isActive = selectedSkills.includes(skill);
             return (
               <button
@@ -97,8 +97,8 @@ export function MemberDirectory({ initialMembers }: MemberDirectoryProps) {
                 onClick={() => toggleSkill(skill)}
                 className={`
                   px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300
-                  ${isActive 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' 
+                  ${isActive
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
                     : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60 border border-white/5'}
                 `}
               >
