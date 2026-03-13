@@ -59,7 +59,7 @@ export function Events({ upcomingEvents, pastEvents }: EventsProps) {
                                 technical buildstations and hackathons, see where Malaysian builders are gathering next.
                             </p>
 
-                            <Button variant="tertiary" size="hero" onClick={() => window.open('https://luma.com/mysuperteam/events', '_blank')}>
+                            <Button variant="tertiary" size="hero" onClick={() => window.open('https://luma.com/mysuperteam/events', '_blank', 'noopener,noreferrer')}>
                                 View All Events
                                 <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                             </Button>
@@ -93,7 +93,7 @@ export function Events({ upcomingEvents, pastEvents }: EventsProps) {
                                         exit={{ opacity: 0, y: 20 }}
                                         transition={{ delay: i * 0.1 }}
                                         className={`group bg-hero border border-stroke rounded-2xl h-full overflow-hidden ${event.luma_url ? 'cursor-pointer' : ''}`}
-                                        onClick={() => event.luma_url && window.open(event.luma_url, '_blank')}
+                                        onClick={() => event.luma_url && window.open(event.luma_url, '_blank', 'noopener,noreferrer')}
                                     >
                                         <div className="w-full group py-6 px-4 flex flex-col md:flex-row gap-6 items-center justify-between h-full" style={{
                                             background:

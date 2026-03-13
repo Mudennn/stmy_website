@@ -77,7 +77,7 @@ export function MemberDialog({ member, onClose }: MemberDialogProps) {
               </div>
 
               {member.twitter_url && (
-                <Button variant="tertiary" size="hero" onClick={() => window.open(member.twitter_url!, '_blank')}>
+                <Button variant="tertiary" size="hero" onClick={() => window.open(member.twitter_url!, '_blank', 'noopener,noreferrer')}>
                   <Twitter size={16} />
                 Follow on X
                 </Button>
