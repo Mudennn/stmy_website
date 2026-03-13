@@ -5,6 +5,7 @@
 
 'use server'
 
+import { randomBytes } from 'crypto'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -31,10 +32,10 @@ export async function getUsers(
   const validFilters = userFilterSchema.parse(filters)
   const { search, page, pageSize } = validFilters
 
-  const supabase = await createClient()
+  const adminClient = createAdminClient()
 
-  // Build query - admin users table
-  let query = supabase.from('admin_users').select('*', { count: 'exact' })
+  // Build query - admin users table (use admin client to bypass RLS and see all users)
+  let query = adminClient.from('admin_users').select('*', { count: 'exact' })
 
   // Search by email or full_name
   if (search) {
@@ -88,17 +89,19 @@ export async function getUser(userId: string): Promise<AdminUserRow> {
  * Only Super Admin can invite other admins.
  * Admins can only invite editors.
  *
- * Sends invitation email with magic link that lets user set their own password.
+ * Creates user with auto-generated password and sends invite email via Supabase.
+ * Admin receives the generated password in a dialog to share with the user manually.
  *
  * 1. Validates invite data
  * 2. Verifies role permissions (super_admin can invite any role, admin can only invite editors)
- * 3. Sends invitation email via service role (user will receive magic link)
- * 4. Creates admin_users record with specified role
- * 5. Returns success or error
+ * 3. Sends invitation email via Supabase (notification with login link)
+ * 4. Sets auto-generated password on the created user
+ * 5. Creates admin_users record with specified role
+ * 6. Returns success with generated password for admin to share
  */
 export async function inviteUser(
   formData: FormData
-): Promise<ActionResult<{ email: string; role: string }>> {
+): Promise<ActionResult<{ email: string; role: string; password: string }>> {
   const session = await requireAdmin()
   const currentUser = session.adminUser
 
@@ -126,7 +129,7 @@ export async function inviteUser(
     // 3. Send invitation email via service role client
     const adminClient = createAdminClient()
 
-    // Send invitation email with magic link for password reset
+    // Send invitation email — Supabase sends a notification email to the user
     const { data: authData, error: createError } = await adminClient.auth.admin.inviteUserByEmail(
       parsed.data.email
     )
@@ -138,7 +141,24 @@ export async function inviteUser(
       }
     }
 
-    // 4. Create admin_users record using admin client
+    // 4. Generate password and confirm email on the created user
+    const tempPassword = randomBytes(12).toString('base64')
+
+    const { error: passwordError } = await adminClient.auth.admin.updateUserById(
+      authData.user.id,
+      { password: tempPassword, email_confirm: true }
+    )
+
+    if (passwordError) {
+      // Clean up: delete the auth user since we can't set their password
+      await adminClient.auth.admin.deleteUser(authData.user.id)
+      return {
+        success: false,
+        error: 'Failed to set user password. Please try again.',
+      }
+    }
+
+    // 5. Create admin_users record using admin client
     const { error: adminUserError } = await adminClient
       .from('admin_users')
       .insert({
@@ -175,12 +195,13 @@ export async function inviteUser(
       }
     }
 
-    // 5. Success
+    // 6. Success — return password for admin to share with the invited user
     return {
       success: true,
       data: {
         email: parsed.data.email,
         role: parsed.data.role,
+        password: tempPassword,
       },
     }
   } catch (error) {

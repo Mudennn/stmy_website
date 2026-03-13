@@ -57,7 +57,7 @@ export function Highlights({ items }: HighlightsProps) {
                     {/* Right Column: Stacking Cards Container */}
                     {items && items.length > 0 && (
                       <div className="lg:w-3/5 relative flex justify-center items-end w-full">
-                        <div className="relative w-full max-w-full lg:max-w-160 h-80 lg:h-113.75">
+                        <div className="relative w-full max-w-full lg:max-w-160 h-100 lg:h-140">
                             {items.map((card, index) => {
                                 return (
                                     <StackingCardItem
@@ -134,16 +134,16 @@ function StackingCardItem({ title, description, image, index, total, progress }:
             }}
             className="absolute inset-0"
         >
-            <div className='bg-hero h-full'>
-                <div className="w-full h-full bg-linear-to-t from-[#683FEA]/20 to-[#000000] border border-stroke p-4 lg:p-10 flex flex-col overflow-hidden">
-
+            <div className='bg-hero h-full relative group overflow-hidden'>
+                <div className="w-full h-full bg-linear-to-t from-[#683FEA]/20 to-[#000000] border border-stroke p-4 lg:p-10 flex flex-col overflow-hidden relative z-10">
+                    
                     {/* Card Header (Image) - Rounded inner box */}
-                    <div className="relative flex-1 w-full rounded-xl overflow-hidden bg-hero">
+                    <div className="relative flex-1 w-full rounded-xl overflow-hidden bg-hero mt-10">
                         <Image
                             src={image}
                             alt={title}
                             fill
-                            className="object-cover"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                             priority={index === 0}
                         />
                     </div>
@@ -157,6 +157,28 @@ function StackingCardItem({ title, description, image, index, total, progress }:
                             {description}
                         </p>
                     </div>
+                </div>
+
+                {/* SVG Bevel Overlay - Folder Tab Mask */}
+                <div className="absolute top-0 left-0 w-full pointer-events-none z-20">
+                    {/* Folder Label */}
+                    <div className="absolute top-2 lg:top-5 left-4 lg:left-7 transition-opacity duration-300">
+                        <span className="text-white text-[12px] lg:text-sm tracking-[0.2em] uppercase whitespace-nowrap">
+                            {index + 1 < 10 ? `0${index + 1}` : index + 1} — STMY
+                        </span>
+                    </div>
+
+                    {/* Desktop: Tab moves from left to right */}
+                    <svg className="hidden lg:block w-full h-20" viewBox="0 0 1000 80" preserveAspectRatio="none" fill="var(--hero)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 200 0 L 280 50 L 1000 50 L 1000 0 Z" />
+                        <path d="M 200 0 L 280 50 L 1000 50" stroke="var(--stroke)" strokeWidth="1" fill="none" />
+                    </svg>
+
+                    {/* Mobile: Smaller version */}
+                    <svg className="block lg:hidden w-full h-10" viewBox="0 0 400 40" preserveAspectRatio="none" fill="var(--hero)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 120 0 L 160 30 L 400 30 L 400 0 Z" />
+                        <path d="M 120 0 L 160 30 L 400 30" stroke="var(--stroke)" strokeWidth="1" fill="none" />
+                    </svg>
                 </div>
             </div>
         </motion.div>
