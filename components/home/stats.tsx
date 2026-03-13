@@ -10,7 +10,7 @@ interface StatsProps {
 
 function Counter({ value, suffix = "+" }: { value: number; suffix?: string }) {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
+    const isInView = useInView(ref, { once: true, margin: "0px" });
     const motionValue = useMotionValue(0);
     const springValue = useSpring(motionValue, {
         stiffness: 300,
