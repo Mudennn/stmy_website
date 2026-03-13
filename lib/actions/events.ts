@@ -157,20 +157,19 @@ export async function createEvent(input: unknown): Promise<Event> {
     imageUrl = publicUrlData.publicUrl
   }
 
+  // Convert from Malaysia time (UTC+8) to UTC for storage
+  // Append MYT offset and let JS Date handle the conversion
+  const utcEventDate = new Date(`${data.eventDate}+08:00`).toISOString()
+
   const { data: event, error } = await supabase
     .from('events')
     .insert({
       title: data.title,
-      slug: data.slug,
-      description: data.description || null,
-      event_date: data.eventDate,
-      end_date: data.endDate || null,
+      event_date: utcEventDate,
       location: data.location || null,
-      location_url: data.locationUrl || null,
       luma_url: data.lumaUrl || null,
       image_url: imageUrl,
       status: data.status,
-      capacity: data.capacity || null,
       created_by: session.user.id,
     })
     .select('*')
@@ -206,15 +205,6 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
 
   const supabase = await createClient()
   const adminClient = createAdminClient()
-
-  // Validate cross-field date constraint for partial updates
-  // If only endDate is being updated, fetch current eventDate and ensure endDate is after it
-  if (data.endDate && !data.eventDate) {
-    const { data: currentEvent } = await supabase.from('events').select('event_date').eq('id', id).single()
-    if (currentEvent?.event_date && data.endDate < currentEvent.event_date) {
-      throw new Error('End date must be after event date')
-    }
-  }
 
   // Build update object
   const updateData: Partial<Database['public']['Tables']['events']['Update']> = {
@@ -258,15 +248,13 @@ export async function updateEvent(id: string, input: unknown): Promise<Event> {
   }
 
   if (data.title) updateData.title = data.title
-  if (data.slug) updateData.slug = data.slug
-  if (data.description !== undefined) updateData.description = data.description || null
-  if (data.eventDate) updateData.event_date = data.eventDate
-  if (data.endDate !== undefined) updateData.end_date = data.endDate || null
+  if (data.eventDate) {
+    // Convert from Malaysia time (UTC+8) to UTC for storage
+    updateData.event_date = new Date(`${data.eventDate}+08:00`).toISOString()
+  }
   if (data.location !== undefined) updateData.location = data.location || null
-  if (data.locationUrl !== undefined) updateData.location_url = data.locationUrl || null
   if (data.lumaUrl !== undefined) updateData.luma_url = data.lumaUrl || null
   if (data.status) updateData.status = data.status
-  if (data.capacity !== undefined) updateData.capacity = data.capacity
 
   const { data: event, error } = await supabase
     .from('events')

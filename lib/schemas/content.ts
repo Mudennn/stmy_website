@@ -9,7 +9,6 @@ export const contentSchema = z.object({
   subtitle: z.string().max(500).nullable().optional(),
   body: z.string().max(50000).nullable().optional(),
   metadata: z.string().nullable().optional(), // JSON string, parsed in action
-  imageUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
   sortOrder: z.number().int().min(0).nullable().optional(),
   isPublished: z.boolean().default(false),
 })

@@ -40,29 +40,19 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
     isEditMode && event
       ? {
           title: event.title,
-          slug: event.slug,
-          description: event.description || '',
           eventDate: event.event_date?.slice(0, 16) ?? '',
-          endDate: event.end_date?.slice(0, 16) ?? '',
           location: event.location || '',
-          locationUrl: event.location_url || '',
           lumaUrl: event.luma_url || '',
           image: undefined,
           status: event.status,
-          capacity: event.capacity || undefined,
         }
       : {
           title: '',
-          slug: '',
-          description: '',
           eventDate: '',
-          endDate: '',
           location: '',
-          locationUrl: '',
           lumaUrl: '',
           image: undefined,
           status: 'draft',
-          capacity: undefined,
         }
   )
   const [currentImageUrl] = useState<string | null>(
@@ -87,16 +77,11 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
       // Create submission data object with File if present
       const submitData = {
         title: formData.title,
-        slug: formData.slug,
-        description: formData.description,
         eventDate: formData.eventDate,
-        endDate: formData.endDate,
         location: formData.location,
-        locationUrl: formData.locationUrl,
         lumaUrl: formData.lumaUrl,
         image: formData.image,
         status: formData.status,
-        capacity: formData.capacity,
       }
 
       // Validate form data with Zod
@@ -110,7 +95,6 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
         toast.success('Event created successfully')
       }
       router.push('/dashboard/events')
-      router.refresh()
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Convert Zod errors to field errors
@@ -145,93 +129,34 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
         )}
       </Field>
 
-      {/* Slug */}
+
+      {/* Event Date */}
       <Field>
-        <Label htmlFor="slug">Slug *</Label>
+        <Label htmlFor="eventDate">Event Date *</Label>
         <Input
-          id="slug"
-          placeholder="event-slug-url"
-          value={formData.slug}
-          onChange={(e) => handleFieldChange('slug', e.target.value)}
+          id="eventDate"
+          type="datetime-local"
+          value={formData.eventDate}
+          onChange={(e) => handleFieldChange('eventDate', e.target.value)}
         />
-        {errors['slug'] && (
-          <p className="text-sm text-destructive">{errors['slug']}</p>
+        {errors['eventDate'] && (
+          <p className="text-sm text-destructive">{errors['eventDate']}</p>
         )}
       </Field>
 
-      {/* Description */}
+      {/* Location */}
       <Field>
-        <Label htmlFor="description">Description</Label>
-        <textarea
-          id="description"
-          placeholder="Event description"
-          className="h-32 w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
-          value={formData.description || ''}
-          onChange={(e) => handleFieldChange('description', e.target.value)}
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          placeholder="e.g., KL Convention Center"
+          value={formData.location || ''}
+          onChange={(e) => handleFieldChange('location', e.target.value)}
         />
-        {errors['description'] && (
-          <p className="text-sm text-destructive">{errors['description']}</p>
+        {errors['location'] && (
+          <p className="text-sm text-destructive">{errors['location']}</p>
         )}
       </Field>
-
-      {/* Date Fields */}
-      <div className="grid grid-cols-2 gap-4">
-        <Field>
-          <Label htmlFor="eventDate">Event Date *</Label>
-          <Input
-            id="eventDate"
-            type="datetime-local"
-            value={formData.eventDate}
-            onChange={(e) => handleFieldChange('eventDate', e.target.value)}
-          />
-          {errors['eventDate'] && (
-            <p className="text-sm text-destructive">{errors['eventDate']}</p>
-          )}
-        </Field>
-
-        <Field>
-          <Label htmlFor="endDate">End Date</Label>
-          <Input
-            id="endDate"
-            type="datetime-local"
-            value={formData.endDate || ''}
-            onChange={(e) => handleFieldChange('endDate', e.target.value)}
-          />
-          {errors['endDate'] && (
-            <p className="text-sm text-destructive">{errors['endDate']}</p>
-          )}
-        </Field>
-      </div>
-
-      {/* Location Fields */}
-      <div className="grid grid-cols-2 gap-4">
-        <Field>
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            placeholder="e.g., KL Convention Center"
-            value={formData.location || ''}
-            onChange={(e) => handleFieldChange('location', e.target.value)}
-          />
-          {errors['location'] && (
-            <p className="text-sm text-destructive">{errors['location']}</p>
-          )}
-        </Field>
-
-        <Field>
-          <Label htmlFor="locationUrl">Location URL</Label>
-          <Input
-            id="locationUrl"
-            type="url"
-            placeholder="https://maps.google.com/..."
-            value={formData.locationUrl || ''}
-            onChange={(e) => handleFieldChange('locationUrl', e.target.value)}
-          />
-          {errors['locationUrl'] && (
-            <p className="text-sm text-destructive">{errors['locationUrl']}</p>
-          )}
-        </Field>
-      </div>
 
       {/* Luma URL */}
       <Field>
@@ -301,41 +226,24 @@ export function EventForm({ event, isEditMode = false }: EventFormProps) {
         )}
       </Field>
 
-      {/* Status and Capacity */}
-      <div className="grid grid-cols-2 gap-4">
-        <Field>
-          <Label htmlFor="status">Status</Label>
-          <Select value={formData.status} onValueChange={(value) => handleFieldChange('status', value)}>
-            <SelectTrigger id="status">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors['status'] && (
-            <p className="text-sm text-destructive">{errors['status']}</p>
-          )}
-        </Field>
-
-        <Field>
-          <Label htmlFor="capacity">Capacity</Label>
-          <Input
-            id="capacity"
-            type="number"
-            min="0"
-            placeholder="100"
-            value={formData.capacity || ''}
-            onChange={(e) => handleFieldChange('capacity', e.target.value ? Number(e.target.value) : undefined)}
-          />
-          {errors['capacity'] && (
-            <p className="text-sm text-destructive">{errors['capacity']}</p>
-          )}
-        </Field>
-      </div>
+      {/* Status */}
+      <Field>
+        <Label htmlFor="status">Status</Label>
+        <Select value={formData.status} onValueChange={(value) => handleFieldChange('status', value)}>
+          <SelectTrigger id="status">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+        {errors['status'] && (
+          <p className="text-sm text-destructive">{errors['status']}</p>
+        )}
+      </Field>
 
       {/* Submit Buttons */}
       <div className="flex gap-3 justify-end pt-6 border-t">

@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getSession, requireAdmin } from '@/lib/auth/session'
@@ -163,6 +164,7 @@ export async function createPartner(input: unknown): Promise<Partner> {
     throw new Error('Failed to create partner')
   }
 
+  revalidatePath('/')
   return partner
 }
 
@@ -258,6 +260,7 @@ export async function updatePartner(id: string, input: unknown): Promise<Partner
     }
   }
 
+  revalidatePath('/')
   return partner
 }
 

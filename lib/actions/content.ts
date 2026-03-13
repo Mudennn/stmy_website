@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { contentSchema, contentFilterSchema } from '@/lib/schemas/content'
 import type { Database } from '@/types/database'
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 
 type CmsContent = Database['public']['Tables']['cms_content']['Row']
 
@@ -129,8 +130,7 @@ export async function updateContent(id: string, input: unknown): Promise<CmsCont
   if (data.subtitle !== undefined) updateData.subtitle = data.subtitle || null
   if (data.body !== undefined) updateData.body = data.body || null
   if (metadataParsed !== undefined) updateData.metadata = metadataParsed as Database['public']['Tables']['cms_content']['Update']['metadata']
-  if (data.imageUrl !== undefined) updateData.image_url = data.imageUrl || null
-  if (data.sortOrder !== undefined) updateData.sort_order = data.sortOrder ?? null
+  if (data.sortOrder !== undefined && data.sortOrder !== null) updateData.sort_order = data.sortOrder
   if (data.isPublished !== undefined) updateData.is_published = data.isPublished
 
   const { data: content, error } = await supabase
@@ -147,6 +147,9 @@ export async function updateContent(id: string, input: unknown): Promise<CmsCont
   if (!content) {
     throw new Error('Content not found')
   }
+
+  // Revalidate homepage if any section was updated
+  revalidatePath('/')
 
   return content
 }

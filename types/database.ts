@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
@@ -50,7 +48,7 @@ export type Database = {
           created_by: string | null
           ends_at: string | null
           id: string
-          is_active: boolean | null
+          is_active: boolean
           message: string
           starts_at: string | null
           updated_at: string
@@ -60,7 +58,7 @@ export type Database = {
           created_by?: string | null
           ends_at?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           message: string
           starts_at?: string | null
           updated_at?: string
@@ -70,32 +68,22 @@ export type Database = {
           created_by?: string | null
           ends_at?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           message?: string
           starts_at?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "announcements_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       cms_content: {
         Row: {
           body: string | null
           created_at: string
-          created_by: string | null
           id: string
-          image_url: string | null
-          is_published: boolean | null
+          is_published: boolean
           metadata: Json | null
           section: Database["public"]["Enums"]["content_section"]
-          sort_order: number | null
+          sort_order: number
           subtitle: string | null
           title: string | null
           updated_at: string
@@ -103,13 +91,11 @@ export type Database = {
         Insert: {
           body?: string | null
           created_at?: string
-          created_by?: string | null
           id?: string
-          image_url?: string | null
-          is_published?: boolean | null
+          is_published?: boolean
           metadata?: Json | null
           section: Database["public"]["Enums"]["content_section"]
-          sort_order?: number | null
+          sort_order?: number
           subtitle?: string | null
           title?: string | null
           updated_at?: string
@@ -117,91 +103,55 @@ export type Database = {
         Update: {
           body?: string | null
           created_at?: string
-          created_by?: string | null
           id?: string
-          image_url?: string | null
-          is_published?: boolean | null
+          is_published?: boolean
           metadata?: Json | null
           section?: Database["public"]["Enums"]["content_section"]
-          sort_order?: number | null
+          sort_order?: number
           subtitle?: string | null
           title?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "cms_content_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       events: {
         Row: {
-          capacity: number | null
           created_at: string
           created_by: string | null
-          description: string | null
-          end_date: string | null
           event_date: string
           id: string
           image_url: string | null
           location: string | null
-          location_url: string | null
           luma_url: string | null
-          slug: string
           status: Database["public"]["Enums"]["event_status"]
-          tags: string[] | null
           title: string
           updated_at: string
         }
         Insert: {
-          capacity?: number | null
           created_at?: string
           created_by?: string | null
-          description?: string | null
-          end_date?: string | null
           event_date: string
           id?: string
           image_url?: string | null
           location?: string | null
-          location_url?: string | null
           luma_url?: string | null
-          slug: string
           status?: Database["public"]["Enums"]["event_status"]
-          tags?: string[] | null
           title: string
           updated_at?: string
         }
         Update: {
-          capacity?: number | null
           created_at?: string
           created_by?: string | null
-          description?: string | null
-          end_date?: string | null
           event_date?: string
           id?: string
           image_url?: string | null
           location?: string | null
-          location_url?: string | null
           luma_url?: string | null
-          slug?: string
           status?: Database["public"]["Enums"]["event_status"]
-          tags?: string[] | null
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "events_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       members: {
         Row: {
@@ -213,10 +163,10 @@ export type Database = {
           created_by: string | null
           full_name: string
           id: string
-          is_active: boolean | null
-          is_featured: boolean | null
+          is_active: boolean
+          is_featured: boolean
           role_title: string | null
-          skill_tags: string[] | null
+          skill_tags: string[]
           twitter_url: string | null
           updated_at: string
         }
@@ -229,10 +179,10 @@ export type Database = {
           created_by?: string | null
           full_name: string
           id?: string
-          is_active?: boolean | null
-          is_featured?: boolean | null
+          is_active?: boolean
+          is_featured?: boolean
           role_title?: string | null
-          skill_tags?: string[] | null
+          skill_tags?: string[]
           twitter_url?: string | null
           updated_at?: string
         }
@@ -245,103 +195,70 @@ export type Database = {
           created_by?: string | null
           full_name?: string
           id?: string
-          is_active?: boolean | null
-          is_featured?: boolean | null
+          is_active?: boolean
+          is_featured?: boolean
           role_title?: string | null
-          skill_tags?: string[] | null
+          skill_tags?: string[]
           twitter_url?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "members_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       partners: {
         Row: {
           created_at: string
-          created_by: string | null
           id: string
-          is_active: boolean | null
+          is_active: boolean
           logo_url: string | null
           name: string
+          sort_order: number
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           created_at?: string
-          created_by?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           logo_url?: string | null
           name: string
+          sort_order?: number
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           created_at?: string
-          created_by?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           logo_url?: string | null
           name?: string
+          sort_order?: number
           updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "partners_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rate_limits: {
-        Row: {
-          action: string
-          attempted_at: string
-          id: number
-          identifier: string
-        }
-        Insert: {
-          action: string
-          attempted_at?: string
-          id?: number
-          identifier: string
-        }
-        Update: {
-          action?: string
-          attempted_at?: string
-          id?: number
-          identifier?: string
+          website_url?: string | null
         }
         Relationships: []
       }
     }
-    Views: {
-      [_ in never]: never
-    }
+    Views: Record<string, never>
     Functions: {
-      check_rate_limit: {
-        Args: {
-          p_action: string
-          p_identifier: string
-          p_max_attempts?: number
-          p_window_seconds?: number
-        }
-        Returns: boolean
-      }
-      cleanup_rate_limits: { Args: never; Returns: undefined }
       record_failed_attempt: {
         Args: {
           p_identifier: string
           p_action: string
         }
-        Returns: undefined
+        Returns: null
+      }
+      cleanup_rate_limits: {
+        Args: Record<string, never>
+        Returns: null
+      }
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_action: string
+          p_max_attempts?: number
+          p_window_seconds?: number
+        }
+        Returns: boolean
       }
     }
     Enums: {
@@ -359,8 +276,8 @@ export type Database = {
       event_status: "draft" | "published" | "cancelled" | "completed"
       user_role: "super_admin" | "admin" | "editor"
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<string, never>
   }
 }
+
+export {}

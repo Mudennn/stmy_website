@@ -3,51 +3,31 @@ import { z } from 'zod'
 /**
  * Event form data schema for create/edit operations.
  */
-export const eventSchema = z
-  .object({
-    title: z.string().min(1, 'Title is required').max(255),
-    slug: z.string().min(1, 'Slug is required').max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, numbers, and hyphens only'),
-    description: z.string().max(5000).nullable().optional(),
-    eventDate: z.string().min(1, 'Event date is required'),
-    endDate: z.string().nullable().optional(),
-    location: z.string().max(255).nullable().optional(),
-    locationUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
-    lumaUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
-    image: z
-      .instanceof(File)
-      .refine(
-        (file) => file.size <= 5 * 1024 * 1024,
-        'Image must be 5 MB or smaller'
-      )
-      .optional(),
-    status: z.enum(['draft', 'published', 'cancelled', 'completed']).default('draft'),
-    capacity: z.number().int().positive().nullable().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.endDate && data.eventDate && data.endDate < data.eventDate) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'End date must be after event date',
-        path: ['endDate'],
-      })
-    }
-  })
+export const eventSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(255),
+  eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Event date must be in format YYYY-MM-DDTHH:MM'),
+  location: z.string().max(255).nullable().optional(),
+  lumaUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
+  image: z
+    .instanceof(File)
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      'Image must be 5 MB or smaller'
+    )
+    .optional(),
+  status: z.enum(['draft', 'published', 'cancelled', 'completed']).default('draft'),
+})
 
 export type EventFormData = z.infer<typeof eventSchema>
 
 /**
- * Event update schema - partial fields without refinements for partial updates.
- * The date constraint validation is handled in the action layer for partial updates.
+ * Event update schema - partial fields for partial updates.
  */
 export const eventUpdateSchema = z
   .object({
     title: z.string().min(1, 'Title is required').max(255),
-    slug: z.string().min(1, 'Slug is required').max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, numbers, and hyphens only'),
-    description: z.string().max(5000).nullable().optional(),
-    eventDate: z.string().min(1, 'Event date is required'),
-    endDate: z.string().nullable().optional(),
+    eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Event date must be in format YYYY-MM-DDTHH:MM'),
     location: z.string().max(255).nullable().optional(),
-    locationUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
     lumaUrl: z.union([z.literal(''), z.string().url('Invalid URL')]).optional(),
     image: z
       .instanceof(File)
@@ -57,18 +37,8 @@ export const eventUpdateSchema = z
       )
       .optional(),
     status: z.enum(['draft', 'published', 'cancelled', 'completed']).default('draft'),
-    capacity: z.number().int().positive().nullable().optional(),
   })
   .partial()
-  .superRefine((data, ctx) => {
-    if (data.endDate && data.eventDate && data.endDate < data.eventDate) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'End date must be after event date',
-        path: ['endDate'],
-      })
-    }
-  })
 
 export type EventUpdateData = z.infer<typeof eventUpdateSchema>
 

@@ -66,6 +66,19 @@ async function createBucket() {
     }
     console.log("✓ Bucket 'partner-images' ready");
 
+    // Create homepage-images bucket
+    const { error: homepageError } = await supabase.storage.createBucket(
+      "homepage-images",
+      { public: true }
+    );
+
+    if (homepageError) {
+      if (!homepageError.message.includes("already exists")) {
+        throw homepageError;
+      }
+    }
+    console.log("✓ Bucket 'homepage-images' ready");
+
     console.log("✓ Storage setup complete");
   } catch (error) {
     console.error("✗ Failed to create bucket:", error);
