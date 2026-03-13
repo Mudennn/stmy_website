@@ -11,7 +11,6 @@ import {
   useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   ColumnFiltersState,
   flexRender,
 } from '@tanstack/react-table'
@@ -92,7 +91,6 @@ export function UsersTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     state: {
       columnFilters,
     },
