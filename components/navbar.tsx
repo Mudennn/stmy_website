@@ -84,7 +84,7 @@ export default function Navbar() {
                 marginLeft: isScrolled ? "4px" : "auto",
                 marginRight: isScrolled ? "auto" : "4px",
               }}
-              onClick={() => window.open("https://t.me/SuperteamMY#", "_blank")}
+              onClick={() => window.open("https://t.me/SuperteamMY#", "_blank", "noopener,noreferrer")}
             >
               Join Us
             </motion.button>
@@ -122,7 +122,7 @@ export default function Navbar() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() =>
-                  window.open("https://t.me/SuperteamMY#", "_blank")
+                  window.open("https://t.me/SuperteamMY#", "_blank", "noopener,noreferrer")
                 }
                 className="bg-primary text-white px-6 py-2 rounded-full text-sm font-semibold"
               >
