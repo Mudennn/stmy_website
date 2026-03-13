@@ -57,7 +57,7 @@ export function Highlights({ items }: HighlightsProps) {
                     {/* Right Column: Stacking Cards Container */}
                     {items && items.length > 0 && (
                       <div className="lg:w-3/5 relative flex justify-center items-end w-full">
-                        <div className="relative w-full max-w-full lg:max-w-160 h-100 lg:h-140">
+                        <div className="relative w-full max-w-full lg:max-w-160 h-100 lg:h-113.75">
                             {items.map((card, index) => {
                                 return (
                                     <StackingCardItem
